@@ -1,0 +1,62 @@
+package com.workflow.dao.repository;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.envers.Audited;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serializable;
+
+@Entity
+@Table(name = "WORKFLOW_ENTITY_SETTING")
+@DynamicUpdate
+@Audited
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Setter
+@Getter
+@EntityListeners(AuditingEntityListener.class)
+public class WorkflowEntitySetting extends Auditable implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    @Comment("Primary key, auto-generated")
+    private Long id;
+
+    @Column(nullable = false)
+    @Comment("Name of the application or client using this workflow")
+    private String applicationName;
+
+    @Column(nullable = true)
+    @Comment("Whether retry is enabled for this entity")
+    private boolean retry;
+    @Column(nullable = true)
+    @Comment("Whether tracking is enabled for this entity")
+    private boolean tracking;
+
+    @ManyToOne
+    @JoinColumn(name = "workflow_type_id")
+    @Comment("Primary workflow type for this entity")
+    WorkflowType trackingServiceProviderActionId;
+    @ManyToOne
+    @JoinColumn(name = "workflow_type_id_2")
+    @Comment("Secondary workflow type (e.g. fallback)")
+    WorkflowType trackingServiceProviderActionId2;
+
+    @Column(nullable = true)
+    @Comment("EIM (Enterprise Identity Manager) identifier or integration ID")
+    private String eimId;
+    @Column(nullable = true)
+    @Comment("Default service account for API calls")
+    private String defaultServiceAccount;
+    @Column(nullable = true)
+    @Comment("Region or environment (e.g. US, EU, prod, dev)")
+    private String region;
+    @Column(nullable = true)
+    @Comment("Whether this entity setting is active")
+    private boolean enabled;
+}
