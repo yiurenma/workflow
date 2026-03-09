@@ -7,7 +7,13 @@ import org.hibernate.envers.Audited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "WORKFLOW_ENTITY_AND_LINKING_ID_MAPPING")
+@Table(
+        name = "WORKFLOW_ENTITY_AND_LINKING_ID_MAPPING",
+        indexes = {
+                @Index(name = "idx_entity_linking_entity_logic", columnList = "workflow_entity_setting_id,logic_order"),
+                @Index(name = "idx_entity_linking_rule_type_mapping", columnList = "workflow_rule_and_type_mapping_id")
+        }
+)
 @DynamicUpdate
 @Audited
 @AllArgsConstructor
@@ -23,12 +29,23 @@ public class WorkflowEntityAndLinkingIdMapping extends Auditable {
     @Column(nullable = false)
     private Long id;
 
-    private String workflowRuleAndTypeLinkingId;
-
     @ManyToOne
-    @JoinColumn(name = "workflow_entity_setting_id")
+    @JoinColumn(
+            name = "workflow_entity_setting_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_entity_linking_entity_setting")
+    )
     private WorkflowEntitySetting workflowEntitySetting;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "workflow_rule_and_type_mapping_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "fk_entity_linking_rule_type_mapping")
+    )
+    private WorkflowRuleAndType workflowRuleAndTypeMapping;
+
+    @Column(name = "logic_order")
     private Integer logicOrder;
     private String remark;
 }
