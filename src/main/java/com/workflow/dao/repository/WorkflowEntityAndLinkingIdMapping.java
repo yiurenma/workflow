@@ -45,6 +45,9 @@ public class WorkflowEntityAndLinkingIdMapping extends Auditable {
     )
     private WorkflowRuleAndType workflowRuleAndTypeMapping;
 
+    @Column(name = "workflow_rule_and_type_linking_id")
+    private String workflowRuleAndTypeLinkingId;
+
     @Column(name = "logic_order")
     private Integer logicOrder;
     private String remark;
