@@ -2,17 +2,12 @@ spring:
   application:
     name: lowcode-workflow
 
-  # H2 Database (in-memory for development)
+  # PostgreSQL Database
   datasource:
-    url: jdbc:h2:mem:workflowdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  # H2 Console - enable at http://localhost:8080/h2-console
-  h2:
-    console:
-      enabled: true
+    url: jdbc:postgresql://ep-frosty-bush-a5f8yx09-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+    driver-class-name: org.postgresql.Driver
+    username: neondb_owner
+    password: npg_iW3juwZGAI8K
 
   jpa:
     hibernate:
@@ -21,7 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: 8080

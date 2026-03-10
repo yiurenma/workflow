@@ -28,7 +28,6 @@ Runs at `http://localhost:8080`.
 | GET | `/actuator/health` | Actuator health endpoint |
 | GET | `/actuator/info` | Actuator info |
 | GET | `/actuator/metrics` | Actuator metrics |
-| GET | `/h2-console` | H2 web console (JDBC: `jdbc:h2:mem:workflowdb`, user: `sa`, password: empty) |
 
 ## Architecture
 

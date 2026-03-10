@@ -87,10 +87,10 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- H2 Database - in-memory for quick start (swap for PostgreSQL/MySQL in prod) -->
+        <!-- PostgreSQL Database -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
