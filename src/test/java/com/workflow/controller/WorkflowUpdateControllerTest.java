@@ -81,8 +81,6 @@ class WorkflowUpdateControllerTest {
 
     @Test
     void updateWorkFlowShouldThrowBadRequestWhenCreatingWithoutBody() {
-        when(workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName("app")).thenReturn(List.of());
-
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
                 () -> controller.updateWorkFlow("app", null)
