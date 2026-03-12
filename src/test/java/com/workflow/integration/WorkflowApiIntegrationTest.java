@@ -1,5 +1,6 @@
 package com.workflow.integration;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.workflow.controller.domain.Plugin;
 import com.workflow.controller.domain.WorkFlow;
@@ -19,9 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,10 +83,17 @@ class WorkflowApiIntegrationTest {
     @BeforeEach
     void cleanup() throws Exception {
         for (String appName : List.of(APP, APP_COPY)) {
-            // Delete reports first so the API DELETE is not blocked by the 409 guard
-            entitySettingRepo.getWorkflowEntitySettingByApplicationName(appName)
-                    .forEach(s -> reportRepo.deleteAll(
-                            reportRepo.findByWorkflowEntitySetting_Id(s.getId())));
+            entitySettingRepo.getWorkflowEntitySettingByApplicationName(appName).forEach(s -> {
+                // Delete reports first so the API DELETE is not blocked by the 409 guard
+                reportRepo.deleteAll(reportRepo.findByWorkflowEntitySetting_Id(s.getId()));
+                // Null any manually-set WorkflowType FK refs so they don't block type deletion
+                if (s.getTrackingServiceProviderActionId() != null
+                        || s.getTrackingServiceProviderActionId2() != null) {
+                    s.setTrackingServiceProviderActionId(null);
+                    s.setTrackingServiceProviderActionId2(null);
+                    entitySettingRepo.saveAndFlush(s);
+                }
+            });
             // Ignore 400 if the application does not exist yet
             mockMvc.perform(delete("/api/workflow").param("applicationName", appName));
         }
@@ -980,6 +986,775 @@ class WorkflowApiIntegrationTest {
                     .stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
             assertEquals(FIXTURE_RULE_COUNT, newRuleIds.size(),
                     "Re-POST must create fresh " + FIXTURE_RULE_COUNT + " rule rows");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // Shared builder helpers for deeper tests
+    // ══════════════════════════════════════════════
+
+    /** Build a 1-plugin workflow whose single plugin has an empty ruleList. */
+    private WorkFlow buildWorkflowWithEmptyRuleList() {
+        Plugin plugin = Plugin.builder()
+                .id(1)
+                .description("Step 1: no rules")
+                .ruleList(List.of())
+                .action(WorkflowType.builder()
+                        .type("CONSUMER")
+                        .provider("TestProvider")
+                        .httpRequestMethod("GET")
+                        .httpRequestUrlWithQueryParameter("https://test.example.com/no-rules")
+                        .httpRequestHeaders("{\"Content-Type\":\"application/json\"}")
+                        .httpRequestBody("")
+                        .trackingNumberSchemaInHttpResponse("{}")
+                        .build())
+                .build();
+        return WorkFlow.builder().pluginList(List.of(plugin)).uiMapList(List.of()).build();
+    }
+
+    /** Build a workflow whose plugins are provided in a deliberately non-sequential order. */
+    private WorkFlow buildOutOfOrderWorkflow() {
+        List<Plugin> plugins = new ArrayList<>();
+        for (int id : new int[]{3, 1, 2}) {
+            plugins.add(Plugin.builder()
+                    .id(id)
+                    .description("Out-of-order step " + id)
+                    .ruleList(List.of(WorkflowRule.builder()
+                            .key("$.data[?(@.step == " + id + ")]")
+                            .remark("Rule for step " + id)
+                            .build()))
+                    .action(WorkflowType.builder()
+                            .type("CONSUMER")
+                            .httpRequestMethod("GET")
+                            .httpRequestUrlWithQueryParameter("https://test.example.com/" + id)
+                            .httpRequestHeaders("{\"Accept\":\"application/json\"}")
+                            .httpRequestBody("")
+                            .trackingNumberSchemaInHttpResponse("{}")
+                            .build())
+                    .build());
+        }
+        return WorkFlow.builder().pluginList(plugins).uiMapList(List.of()).build();
+    }
+
+    // ══════════════════════════════════════════════
+    // 7. DB field encoding verification
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("7. DB field encoding: URLs/headers/elseLogic stored as Base64; method/type stored as plain text")
+    class DbFieldEncodingVerification {
+
+        @Test
+        @DisplayName("httpRequestUrlWithQueryParameter is stored as Base64 (plain) in DB, not plain text")
+        void httpRequestUrlStoredAsBase64() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            // Plugin 1 is CONSUMER with a non-null URL
+            String plainUrl = wf.getPluginList().get(0).getAction().getHttpRequestUrlWithQueryParameter();
+            String expectedBase64 = Base64.getEncoder()
+                    .encodeToString(plainUrl.getBytes(StandardCharsets.UTF_8));
+
+            WorkflowType dbType = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream()
+                    .filter(rt -> "CONSUMER".equals(rt.getWorkflowType().getType()))
+                    .map(WorkflowRuleAndType::getWorkflowType)
+                    .findFirst().orElseThrow();
+
+            assertEquals(expectedBase64, dbType.getHttpRequestUrlWithQueryParameter(),
+                    "httpRequestUrlWithQueryParameter must be stored as plain Base64 in DB");
+        }
+
+        @Test
+        @DisplayName("httpRequestMethod is stored as plain text (NOT Base64) in DB")
+        void httpRequestMethodStoredAsPlainText() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            WorkflowType dbType = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream()
+                    .filter(rt -> "CONSUMER".equals(rt.getWorkflowType().getType()))
+                    .map(WorkflowRuleAndType::getWorkflowType)
+                    .findFirst().orElseThrow();
+
+            assertEquals("GET", dbType.getHttpRequestMethod(),
+                    "httpRequestMethod must be stored as plain text 'GET', not Base64");
+            assertFalse(dbType.getHttpRequestMethod().contains("="),
+                    "httpRequestMethod must not look like Base64 (no '=' padding)");
+        }
+
+        @Test
+        @DisplayName("httpRequestHeaders is stored as Base64 JSON in DB")
+        void httpRequestHeadersStoredAsBase64Json() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            String plainHeaders = wf.getPluginList().get(0).getAction().getHttpRequestHeaders();
+            String normalised    = objectMapper.readTree(plainHeaders).toString();
+            String expectedBase64 = Base64.getEncoder()
+                    .encodeToString(normalised.getBytes(StandardCharsets.UTF_8));
+
+            WorkflowType dbType = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream()
+                    .filter(rt -> "CONSUMER".equals(rt.getWorkflowType().getType()))
+                    .map(WorkflowRuleAndType::getWorkflowType)
+                    .findFirst().orElseThrow();
+
+            assertEquals(expectedBase64, dbType.getHttpRequestHeaders(),
+                    "httpRequestHeaders must be stored as Base64-encoded JSON in DB");
+        }
+
+        @Test
+        @DisplayName("elseLogic for IFELSE plugin is stored as Base64 JSON in DB")
+        void elseLogicStoredAsBase64Json() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            // Plugin 2 (index 1) is IFELSE with non-null elseLogic
+            String plainElseLogic = wf.getPluginList().get(1).getAction().getElseLogic();
+            assertNotNull(plainElseLogic, "Fixture plugin 2 must have non-null elseLogic");
+            String normalised     = objectMapper.readTree(plainElseLogic).toString();
+            String expectedBase64 = Base64.getEncoder()
+                    .encodeToString(normalised.getBytes(StandardCharsets.UTF_8));
+
+            // Find the IFELSE type for plugin 2 in DB
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            WorkflowEntityAndLinkingIdMapping plugin2Mapping =
+                    linkingMappingRepo.findAllByWorkflowEntitySettingId(s.getId())
+                            .stream().filter(m -> m.getLogicOrder().equals(2))
+                            .findFirst().orElseThrow();
+            List<WorkflowRuleAndType> plugin2RuleAndTypes =
+                    ruleAndTypeRepo.findAllByLinkingIdIn(List.of(plugin2Mapping.getLinkingId()));
+            WorkflowType dbType = plugin2RuleAndTypes.get(0).getWorkflowType();
+
+            assertEquals(expectedBase64, dbType.getElseLogic(),
+                    "elseLogic must be stored as Base64-encoded JSON in DB");
+        }
+
+        @Test
+        @DisplayName("WorkflowType.type and provider are stored as plain text (NOT Base64) in DB")
+        void typeAndProviderStoredAsPlainText() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            List<WorkflowRuleAndType> allRt =
+                    ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP));
+
+            for (WorkflowRuleAndType rt : allRt) {
+                String type = rt.getWorkflowType().getType();
+                assertNotNull(type, "type must not be null");
+                assertTrue(List.of("CONSUMER", "IFELSE", "MESSAGE").contains(type),
+                        "type must be one of the fixture values, found: " + type);
+                assertFalse(type.contains("="),
+                        "type must not be Base64-encoded, found: " + type);
+            }
+        }
+
+        @Test
+        @DisplayName("WorkflowEntitySetting.workflow field decodes to valid JSON with correct pluginList and uiMapList structure")
+        void entitySettingWorkflowFieldDecodesToValidJson() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            assertNotNull(s.getWorkflow(), "workflow field must be populated");
+
+            // Decode from Base64 and parse as JSON
+            byte[] decoded = Base64.getDecoder().decode(s.getWorkflow());
+            JsonNode workflowJson = objectMapper.readTree(new String(decoded, StandardCharsets.UTF_8));
+
+            assertNotNull(workflowJson.get("pluginList"), "decoded workflow must have pluginList");
+            assertNotNull(workflowJson.get("uiMapList"),  "decoded workflow must have uiMapList");
+            assertEquals(FIXTURE_PLUGIN_COUNT, workflowJson.get("pluginList").size(),
+                    "decoded workflow pluginList must contain " + FIXTURE_PLUGIN_COUNT + " plugins");
+            assertEquals(9, workflowJson.get("uiMapList").size(),
+                    "decoded workflow uiMapList must contain 9 edges");
+        }
+
+        @Test
+        @DisplayName("internalHttpRequestUrlWithQueryParameter is stored as Base64 (plain) in DB and decoded correctly in GET")
+        void internalHttpRequestUrlRoundTrips() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            // Plugin 1 has internalHttpRequestUrlWithQueryParameter
+            String plainInternalUrl = wf.getPluginList().get(0).getAction()
+                    .getInternalHttpRequestUrlWithQueryParameter();
+            assertNotNull(plainInternalUrl, "Fixture plugin 1 must have internalHttpRequestUrlWithQueryParameter");
+
+            // Verify stored as Base64 in DB
+            WorkflowType dbType = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream()
+                    .filter(rt -> "CONSUMER".equals(rt.getWorkflowType().getType()))
+                    .map(WorkflowRuleAndType::getWorkflowType)
+                    .findFirst().orElseThrow();
+            String expectedBase64 = Base64.getEncoder()
+                    .encodeToString(plainInternalUrl.getBytes(StandardCharsets.UTF_8));
+            assertEquals(expectedBase64, dbType.getInternalHttpRequestUrlWithQueryParameter(),
+                    "internalHttpRequestUrlWithQueryParameter must be Base64-encoded in DB");
+
+            // Verify decoded correctly in GET response
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            Plugin p1 = got.getPluginList().stream()
+                    .filter(p -> p.getId().equals(1)).findFirst().orElseThrow();
+            assertEquals(plainInternalUrl, p1.getAction().getInternalHttpRequestUrlWithQueryParameter(),
+                    "internalHttpRequestUrlWithQueryParameter must decode back to original value in GET");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // 8. Audit timestamps
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("8. Audit timestamps are set on all entities after POST")
+    class AuditTimestamps {
+
+        @Test
+        @DisplayName("Entity setting has non-null createdDateTime and lastModifiedDateTime after POST")
+        void entitySettingHasAuditTimestamps() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            assertNotNull(s.getCreatedDateTime(),      "createdDateTime must be set");
+            assertNotNull(s.getLastModifiedDateTime(), "lastModifiedDateTime must be set");
+            assertFalse(s.getLastModifiedDateTime().before(s.getCreatedDateTime()),
+                    "lastModifiedDateTime must be >= createdDateTime");
+        }
+
+        @Test
+        @DisplayName("All WorkflowRule rows have non-null audit timestamps after POST")
+        void ruleRowsHaveAuditTimestamps() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            List<WorkflowRuleAndType> allRt =
+                    ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP));
+            for (WorkflowRuleAndType rt : allRt) {
+                WorkflowRule rule = rt.getWorkflowRule();
+                assertNotNull(rule.getCreatedDateTime(),
+                        "rule " + rule.getId() + " createdDateTime must be set");
+                assertNotNull(rule.getLastModifiedDateTime(),
+                        "rule " + rule.getId() + " lastModifiedDateTime must be set");
+            }
+        }
+
+        @Test
+        @DisplayName("All WorkflowType rows have non-null audit timestamps after POST")
+        void typeRowsHaveAuditTimestamps() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            List<WorkflowRuleAndType> allRt =
+                    ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP));
+            for (WorkflowRuleAndType rt : allRt) {
+                WorkflowType type = rt.getWorkflowType();
+                assertNotNull(type.getCreatedDateTime(),
+                        "type " + type.getId() + " createdDateTime must be set");
+                assertNotNull(type.getLastModifiedDateTime(),
+                        "type " + type.getId() + " lastModifiedDateTime must be set");
+            }
+        }
+
+        @Test
+        @DisplayName("Entity setting lastModifiedDateTime is updated on second POST; createdDateTime stays unchanged")
+        void secondPostUpdatesLastModifiedButNotCreated() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+            WorkflowEntitySetting after1st =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            Date createdAt = after1st.getCreatedDateTime();
+
+            postWorkflow(APP, buildSimpleWorkflow(3));
+            WorkflowEntitySetting after2nd =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+
+            assertEquals(createdAt, after2nd.getCreatedDateTime(),
+                    "createdDateTime must not change after update (updatable=false)");
+            assertNotNull(after2nd.getLastModifiedDateTime(),
+                    "lastModifiedDateTime must still be non-null after update");
+            assertFalse(after2nd.getLastModifiedDateTime().before(after2nd.getCreatedDateTime()),
+                    "lastModifiedDateTime must be >= createdDateTime after update");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // 9. DB structure deep verification
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("9. DB structure deep verification")
+    class DbStructureDeepVerification {
+
+        @Test
+        @DisplayName("Plugin with empty ruleList creates exactly one WorkflowRule row with key=\"\" in DB")
+        void emptyRuleListCreatesEmptyKeyRule() throws Exception {
+            postWorkflow(APP, buildWorkflowWithEmptyRuleList());
+
+            List<String> linkingIds = getLinkingIdsForApp(APP);
+            List<WorkflowRuleAndType> ruleAndTypes = ruleAndTypeRepo.findAllByLinkingIdIn(linkingIds);
+
+            assertEquals(1, ruleAndTypes.size(),
+                    "Exactly one rule-type row must be created for empty ruleList");
+            assertEquals("", ruleAndTypes.get(0).getWorkflowRule().getKey(),
+                    "Empty ruleList must produce a rule with key=\"\"");
+        }
+
+        @Test
+        @DisplayName("Plugins POSTed in non-sequential order: GET returns them sorted by step ID")
+        void pluginsPostedOutOfOrderReturnedSorted() throws Exception {
+            postWorkflow(APP, buildOutOfOrderWorkflow()); // sends [3, 1, 2]
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+
+            List<Integer> returnedIds = got.getPluginList().stream()
+                    .map(Plugin::getId).collect(Collectors.toList());
+            assertEquals(List.of(1, 2, 3), returnedIds,
+                    "GET must return plugins sorted by ID (1, 2, 3) regardless of POST order");
+        }
+
+        @Test
+        @DisplayName("Multi-rule plugin 10: both WorkflowRuleAndType rows share the same linkingId and same WorkflowType")
+        void multiRulePluginSharesLinkingIdAndType() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            WorkflowEntityAndLinkingIdMapping plugin10Mapping =
+                    linkingMappingRepo.findAllByWorkflowEntitySettingId(s.getId())
+                            .stream().filter(m -> m.getLogicOrder().equals(10))
+                            .findFirst().orElseThrow();
+
+            List<WorkflowRuleAndType> plugin10Rows =
+                    ruleAndTypeRepo.findAllByLinkingIdIn(List.of(plugin10Mapping.getLinkingId()));
+
+            assertEquals(2, plugin10Rows.size(),
+                    "Plugin 10 with 2 rules must have exactly 2 WorkflowRuleAndType rows");
+
+            // Both rows share the same linkingId
+            assertEquals(plugin10Mapping.getLinkingId(), plugin10Rows.get(0).getLinkingId(),
+                    "Row 0 linkingId must match mapping linkingId");
+            assertEquals(plugin10Mapping.getLinkingId(), plugin10Rows.get(1).getLinkingId(),
+                    "Row 1 linkingId must match mapping linkingId");
+
+            // Both rows reference the SAME WorkflowType (1 type per plugin, shared across rules)
+            Long typeId0 = plugin10Rows.get(0).getWorkflowType().getId();
+            Long typeId1 = plugin10Rows.get(1).getWorkflowType().getId();
+            assertEquals(typeId0, typeId1,
+                    "Multi-rule plugin must reference the same WorkflowType for both rules");
+
+            // But each row references a DIFFERENT WorkflowRule
+            assertNotEquals(
+                    plugin10Rows.get(0).getWorkflowRule().getId(),
+                    plugin10Rows.get(1).getWorkflowRule().getId(),
+                    "Each rule in a multi-rule plugin must be a separate WorkflowRule row");
+        }
+
+        @Test
+        @DisplayName("GET response linkingIdOfRuleListAndAction is server-generated (entity setting ID prefix), not the request payload value")
+        void getLinkingIdIsServerGenerated() throws Exception {
+            postWorkflow(APP, loadTestWorkflow()); // fixture sends "4_1_1", "4_2_2" etc.
+
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            String entityIdPrefix = s.getId() + "_";
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+
+            for (Plugin p : got.getPluginList()) {
+                String lid = p.getLinkingIdOfRuleListAndAction();
+                assertNotNull(lid, "linkingIdOfRuleListAndAction must not be null");
+                assertTrue(lid.startsWith(entityIdPrefix),
+                        "linkingIdOfRuleListAndAction '" + lid + "' must start with entity setting ID prefix '"
+                                + entityIdPrefix + "'");
+                // Must NOT be the fixture value (e.g. "4_1_1")
+                assertFalse(lid.startsWith("4_"),
+                        "linkingIdOfRuleListAndAction must not be the request payload value '4_x_x'");
+            }
+        }
+
+        @Test
+        @DisplayName("uiMap node ID, type, and position coordinates are exactly preserved in GET response")
+        void uiMapNodeContentPreservedInGet() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            Plugin p1 = got.getPluginList().stream()
+                    .filter(p -> p.getId().equals(1)).findFirst().orElseThrow();
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uiMap = (Map<String, Object>) p1.getUiMap();
+            assertNotNull(uiMap, "Plugin 1 uiMap must not be null");
+            assertEquals("CONSUMER_1", uiMap.get("id"),   "uiMap id must be 'CONSUMER_1'");
+            assertEquals("CONSUMER",   uiMap.get("type"), "uiMap type must be 'CONSUMER'");
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> position = (Map<String, Object>) uiMap.get("position");
+            assertNotNull(position, "position must be present");
+            assertEquals(100, ((Number) position.get("x")).intValue(), "uiMap x must be 100");
+            assertEquals(100, ((Number) position.get("y")).intValue(), "uiMap y must be 100");
+
+            // Verify plugin 10 has the correct position too (y=1000)
+            Plugin p10 = got.getPluginList().stream()
+                    .filter(p -> p.getId().equals(10)).findFirst().orElseThrow();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> pos10 = (Map<String, Object>)
+                    ((Map<String, Object>) p10.getUiMap()).get("position");
+            assertEquals(1000, ((Number) pos10.get("y")).intValue(), "Plugin 10 uiMap y must be 1000");
+        }
+
+        @Test
+        @DisplayName("WorkflowRule.remark is stored correctly in DB for every rule")
+        void ruleRemarkStoredCorrectlyInDb() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            List<String> expectedRemarks = wf.getPluginList().stream()
+                    .filter(p -> p.getRuleList() != null)
+                    .flatMap(p -> p.getRuleList().stream())
+                    .map(WorkflowRule::getRemark)
+                    .filter(Objects::nonNull)
+                    .sorted()
+                    .toList();
+
+            List<String> dbRemarks = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream()
+                    .map(rt -> rt.getWorkflowRule().getRemark())
+                    .filter(Objects::nonNull)
+                    .sorted()
+                    .toList();
+
+            assertEquals(expectedRemarks.size(), dbRemarks.size(), "Remark count must match");
+            assertEquals(expectedRemarks, dbRemarks, "All rule remarks must match fixture");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // 10. Advanced GET behaviour
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("10. Advanced GET behaviour")
+    class AdvancedGetBehaviour {
+
+        @Test
+        @DisplayName("POST with empty uiMapList: GET auto-generates a default edge list (pluginCount-1 edges)")
+        void emptyStoredUiMapListTriggersDefaultEdgeGeneration() throws Exception {
+            WorkFlow wf = buildSimpleWorkflow(4); // uiMapList is [] in buildSimpleWorkflow
+            postWorkflow(APP, wf);
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+
+            assertNotNull(got.getUiMapList(), "uiMapList must not be null");
+            assertEquals(3, got.getUiMapList().size(),
+                    "4 plugins with empty uiMapList must produce 3 default edges (pluginCount - 1)");
+        }
+
+        @Test
+        @DisplayName("Default generated edges have correct source/target node IDs linking consecutive plugins")
+        void defaultGeneratedEdgesHaveCorrectSourceAndTarget() throws Exception {
+            postWorkflow(APP, buildSimpleWorkflow(3)); // plugins 1, 2, 3 — all CONSUMER type
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+
+            List<Object> edges = got.getUiMapList();
+            assertEquals(2, edges.size(), "3 plugins must produce 2 edges");
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> edge0 = (Map<String, Object>) edges.get(0);
+            assertEquals("CONSUMER_1", edge0.get("source"), "First edge source must be CONSUMER_1");
+            assertEquals("CONSUMER_2", edge0.get("target"), "First edge target must be CONSUMER_2");
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> edge1 = (Map<String, Object>) edges.get(1);
+            assertEquals("CONSUMER_2", edge1.get("source"), "Second edge source must be CONSUMER_2");
+            assertEquals("CONSUMER_3", edge1.get("target"), "Second edge target must be CONSUMER_3");
+        }
+
+        @Test
+        @DisplayName("IFELSE plugins with null HTTP fields (url, method, body, headers) return null in GET response")
+        void nullHttpFieldsOnIfElseReturnNullInGet() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+
+            // All IFELSE plugins in the fixture have null HTTP fields
+            List<Plugin> ifElsePlugins = got.getPluginList().stream()
+                    .filter(p -> "IFELSE".equals(p.getAction().getType()))
+                    .collect(Collectors.toList());
+            assertFalse(ifElsePlugins.isEmpty(), "Fixture must contain IFELSE plugins");
+
+            for (Plugin p : ifElsePlugins) {
+                assertNull(p.getAction().getHttpRequestMethod(),
+                        "IFELSE plugin " + p.getId() + " httpRequestMethod must be null");
+                assertNull(p.getAction().getHttpRequestUrlWithQueryParameter(),
+                        "IFELSE plugin " + p.getId() + " httpRequestUrlWithQueryParameter must be null");
+                assertNull(p.getAction().getHttpRequestHeaders(),
+                        "IFELSE plugin " + p.getId() + " httpRequestHeaders must be null");
+                assertNull(p.getAction().getHttpRequestBody(),
+                        "IFELSE plugin " + p.getId() + " httpRequestBody must be null");
+            }
+        }
+
+        @Test
+        @DisplayName("IFELSE plugins with non-null elseLogic: every IFELSE plugin with elseLogic returns it correctly decoded")
+        void ifElsePluginsWithElseLogicDecodedCorrectly() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            got.getPluginList().sort(Comparator.comparing(Plugin::getId));
+
+            // Find plugins that have non-null elseLogic in the fixture
+            for (int i = 0; i < wf.getPluginList().size(); i++) {
+                String expectedElseLogic = wf.getPluginList().get(i).getAction().getElseLogic();
+                String actualElseLogic   = got.getPluginList().get(i).getAction().getElseLogic();
+                if (expectedElseLogic != null) {
+                    // Normalise both through Jackson so whitespace differences don't matter
+                    JsonNode expectedNode = objectMapper.readTree(expectedElseLogic);
+                    JsonNode actualNode   = objectMapper.readTree(actualElseLogic);
+                    assertEquals(expectedNode, actualNode,
+                            "elseLogic at plugin index " + i + " must decode to the original JSON");
+                } else {
+                    assertNull(actualElseLogic,
+                            "elseLogic at plugin index " + i + " must be null when not set");
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("trackingNumberSchemaInHttpResponse round-trips correctly (JSON Base64 encoding)")
+        void trackingNumberSchemaRoundTrips() throws Exception {
+            WorkFlow wf = loadTestWorkflow();
+            postWorkflow(APP, wf);
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            got.getPluginList().sort(Comparator.comparing(Plugin::getId));
+
+            // Plugin 1 has trackingNumberSchemaInHttpResponse = "{}"
+            assertEquals("{}", got.getPluginList().get(0).getAction().getTrackingNumberSchemaInHttpResponse(),
+                    "trackingNumberSchemaInHttpResponse '{}' must round-trip correctly");
+
+            // Plugin 10 has trackingNumberSchemaInHttpResponse = "" (empty → not encoded → returns "")
+            assertEquals("", got.getPluginList().get(9).getAction().getTrackingNumberSchemaInHttpResponse(),
+                    "Empty trackingNumberSchemaInHttpResponse must round-trip as empty string");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // 11. Advanced autoCopy behaviour
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("11. Advanced autoCopy behaviour")
+    class AdvancedAutoCopyBehaviour {
+
+        @Test
+        @DisplayName("autoCopy copies entity setting metadata fields (retry, tracking, eimId, region) to target")
+        void autoCopyCopiesMetadataFieldsToTarget() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            // Manually enrich source entity setting with metadata
+            WorkflowEntitySetting src =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            src.setRetry(true);
+            src.setTracking(true);
+            src.setEimId("EIM_TEST_001");
+            src.setRegion("TEST_SGP");
+            entitySettingRepo.saveAndFlush(src);
+
+            mockMvc.perform(post("/api/workflow/autoCopy")
+                            .param("fromApplicationName", APP)
+                            .param("toApplicationName", APP_COPY)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            WorkflowEntitySetting target =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP_COPY).get(0);
+            assertTrue(target.isRetry(),    "retry must be copied from source to target");
+            assertTrue(target.isTracking(), "tracking must be copied from source to target");
+            assertEquals("EIM_TEST_001", target.getEimId(),   "eimId must be copied from source to target");
+            assertEquals("TEST_SGP",     target.getRegion(), "region must be copied from source to target");
+        }
+
+        @Test
+        @DisplayName("autoCopy to existing target with different data: old target DB records fully replaced")
+        void autoCopyOverwritesExistingTargetDbRecords() throws Exception {
+            // Source: 10-plugin fixture
+            postWorkflow(APP, loadTestWorkflow());
+            // Pre-existing target with only 3 plugins
+            postWorkflow(APP_COPY, buildSimpleWorkflow(3));
+
+            List<Long> oldTargetRuleIds = ruleAndTypeRepo
+                    .findAllByLinkingIdIn(getLinkingIdsForApp(APP_COPY))
+                    .stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
+            assertEquals(3, oldTargetRuleIds.size(), "Target must have 3 rules before autoCopy");
+
+            mockMvc.perform(post("/api/workflow/autoCopy")
+                            .param("fromApplicationName", APP)
+                            .param("toApplicationName", APP_COPY)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            // Old target rule IDs must be gone
+            long surviving = oldTargetRuleIds.stream()
+                    .filter(id -> ruleRepo.findById(id).isPresent()).count();
+            assertEquals(0, surviving,
+                    "Old target rules (3) must be deleted and replaced after autoCopy");
+
+            // Target must now match source plugin count
+            WorkflowEntitySetting tgt =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP_COPY).get(0);
+            assertEquals(FIXTURE_PLUGIN_COUNT,
+                    linkingMappingRepo.findAllByWorkflowEntitySettingId(tgt.getId()).size(),
+                    "Target must have source's plugin count (" + FIXTURE_PLUGIN_COUNT + ") after autoCopy");
+        }
+
+        @Test
+        @DisplayName("autoCopy then DELETE source: target GET still returns correct workflow (fully independent)")
+        void autoCopyThenDeleteSourceLeavesTargetIntact() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+            mockMvc.perform(post("/api/workflow/autoCopy")
+                            .param("fromApplicationName", APP)
+                            .param("toApplicationName", APP_COPY)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+
+            // Delete source
+            mockMvc.perform(delete("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk());
+
+            // Source is gone
+            mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isBadRequest());
+
+            // Target is still accessible and has correct plugin count
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP_COPY))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            assertEquals(FIXTURE_PLUGIN_COUNT, got.getPluginList().size(),
+                    "Target must retain all plugins after source is deleted");
+        }
+    }
+
+    // ══════════════════════════════════════════════
+    // 12. Advanced update and delete behaviour
+    // ══════════════════════════════════════════════
+
+    @Nested
+    @DisplayName("12. Advanced update and delete behaviour")
+    class AdvancedUpdateAndDeleteBehaviour {
+
+        @Test
+        @DisplayName("Three sequential POSTs with decreasing plugin counts: no record accumulation at any step")
+        void threeSequentialPostsNoAccumulation() throws Exception {
+            // First POST: 10 plugins → 11 rules, 10 types
+            postWorkflow(APP, loadTestWorkflow());
+            List<Long> rules1 = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
+            assertEquals(FIXTURE_RULE_COUNT, rules1.size(), "Step 1 must have 11 rules");
+
+            // Second POST: 5 plugins → 5 rules
+            postWorkflow(APP, buildSimpleWorkflow(5));
+            assertEquals(0, rules1.stream().filter(id -> ruleRepo.findById(id).isPresent()).count(),
+                    "All step-1 rules must be gone after step-2 POST");
+            List<Long> rules2 = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
+            assertEquals(5, rules2.size(), "Step 2 must have exactly 5 rules");
+
+            // Third POST: 2 plugins → 2 rules
+            postWorkflow(APP, buildSimpleWorkflow(2));
+            assertEquals(0, rules2.stream().filter(id -> ruleRepo.findById(id).isPresent()).count(),
+                    "All step-2 rules must be gone after step-3 POST");
+            List<Long> rules3 = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
+            assertEquals(2, rules3.size(), "Step 3 must have exactly 2 rules");
+
+            // Only 1 entity setting throughout
+            assertEquals(1, entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).size(),
+                    "Exactly one entity setting must exist after three sequential POSTs");
+        }
+
+        @Test
+        @DisplayName("DELETE of workflow with no plugins (empty ruleList): entity setting is removed, GET returns 400")
+        void deleteOfEmptyWorkflowRemovesEntitySetting() throws Exception {
+            WorkFlow emptyWf = WorkFlow.builder().pluginList(List.of()).uiMapList(List.of()).build();
+            postWorkflow(APP, emptyWf);
+
+            assertFalse(entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).isEmpty(),
+                    "Entity setting must exist after POST");
+            assertTrue(linkingMappingRepo.findAllByWorkflowEntitySettingId(
+                            entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0).getId()).isEmpty(),
+                    "No mapping rows expected for empty workflow");
+
+            mockMvc.perform(delete("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk());
+
+            assertTrue(entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).isEmpty(),
+                    "Entity setting must be removed after DELETE of empty workflow");
+            mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("POST update resets trackingServiceProviderActionId to null on the entity setting")
+        void postUpdateResetsTrackingServiceProviderActionId() throws Exception {
+            postWorkflow(APP, loadTestWorkflow());
+
+            // Manually set the tracking FK to a real WorkflowType
+            WorkflowEntitySetting s =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            WorkflowType anyType = ruleAndTypeRepo.findAllByLinkingIdIn(getLinkingIdsForApp(APP))
+                    .get(0).getWorkflowType();
+            s.setTrackingServiceProviderActionId(anyType);
+            entitySettingRepo.saveAndFlush(s);
+            assertNotNull(
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0)
+                            .getTrackingServiceProviderActionId(),
+                    "Precondition: trackingServiceProviderActionId must be set before second POST");
+
+            // Second POST triggers deleteWorkflowRulesMappingsAndTypes which nulls the FK
+            postWorkflow(APP, buildSimpleWorkflow(2));
+
+            WorkflowEntitySetting updated =
+                    entitySettingRepo.getWorkflowEntitySettingByApplicationName(APP).get(0);
+            assertNull(updated.getTrackingServiceProviderActionId(),
+                    "trackingServiceProviderActionId must be reset to null after POST update");
+            assertNull(updated.getTrackingServiceProviderActionId2(),
+                    "trackingServiceProviderActionId2 must be reset to null after POST update");
+        }
+
+        @Test
+        @DisplayName("GET returns correct plugin descriptions after updating with out-of-order plugins")
+        void updateWithOutOfOrderPluginsGetReturnsCorrectDescriptions() throws Exception {
+            postWorkflow(APP, buildOutOfOrderWorkflow()); // sends [3, 1, 2]
+
+            MvcResult r = mockMvc.perform(get("/api/workflow").param("applicationName", APP))
+                    .andExpect(status().isOk()).andReturn();
+            WorkFlow got = objectMapper.readValue(r.getResponse().getContentAsString(), WorkFlow.class);
+            got.getPluginList().sort(Comparator.comparing(Plugin::getId));
+
+            assertEquals("Out-of-order step 1", got.getPluginList().get(0).getDescription(),
+                    "Plugin at index 0 (id=1) must have correct description");
+            assertEquals("Out-of-order step 2", got.getPluginList().get(1).getDescription(),
+                    "Plugin at index 1 (id=2) must have correct description");
+            assertEquals("Out-of-order step 3", got.getPluginList().get(2).getDescription(),
+                    "Plugin at index 2 (id=3) must have correct description");
         }
     }
 }
