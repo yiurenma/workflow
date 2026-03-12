@@ -26,6 +26,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +77,9 @@ class WorkflowApiIntegrationTest {
     private static final String SOURCE_APPLICATION_NAME = "ITEST_SOURCE_APP";
     private static final String TARGET_APPLICATION_NAME = "ITEST_TARGET_APP";
     private static final String LOCKED_APPLICATION_NAME = "ITEST_LOCKED_APP";
+    private static final String KEEP_APPLICATION_NAME = "ITEST_KEEP_APP";
+    private static final String CORRUPT_APPLICATION_NAME = "ITEST_CORRUPT_APP";
+    private static final String DUPLICATE_APPLICATION_NAME = "ITEST_DUP_APP";
 
     @BeforeEach
     void cleanup() {
@@ -189,6 +193,46 @@ class WorkflowApiIntegrationTest {
                         "Old action type should be deleted: " + oldTypeId);
             }
         }
+
+        @Test
+        @DisplayName("POST then GET keeps action fields decoded and workflow structure consistent")
+        void postThenGetReturnsExpectedDecodedFields() throws Exception {
+            WorkFlow input = WorkFlow.builder()
+                    .pluginList(List.of(
+                            plugin(1, "decode-first", "TYPE_DECODE", List.of("$.d1", "$.d2")),
+                            plugin(2, "decode-second", "TYPE_EMPTY_RULES", List.of())
+                    ))
+                    .uiMapList(List.of(Map.of("id", "decode-edge")))
+                    .build();
+
+            postWorkflow(APPLICATION_NAME, input)
+                    .andExpect(status().isOk());
+
+            WorkFlow got = getWorkflow(APPLICATION_NAME);
+            assertNotNull(got);
+            assertEquals(2, got.getPluginList().size());
+            assertEquals(1, got.getUiMapList().size());
+
+            Plugin first = got.getPluginList().get(0);
+            assertEquals(1, first.getId());
+            assertEquals("decode-first", first.getDescription());
+            assertEquals("TYPE_DECODE", first.getAction().getType());
+            assertEquals("{\"fallback\":1}", first.getAction().getElseLogic());
+            assertEquals("https://example.com/1", first.getAction().getHttpRequestUrlWithQueryParameter());
+            assertEquals("https://internal.example.com/1", first.getAction().getInternalHttpRequestUrlWithQueryParameter());
+            assertEquals("{\"Content-Type\":\"application/json\"}", first.getAction().getHttpRequestHeaders());
+            assertEquals("{\"id\":1}", first.getAction().getHttpRequestBody());
+            assertEquals("{\"tracking\":1}", first.getAction().getTrackingNumberSchemaInHttpResponse());
+            assertEquals(Set.of("$.d1", "$.d2"),
+                    first.getRuleList().stream().map(WorkflowRule::getKey).collect(java.util.stream.Collectors.toSet()));
+
+            Plugin second = got.getPluginList().get(1);
+            assertEquals(2, second.getId());
+            assertEquals("decode-second", second.getDescription());
+            assertEquals("TYPE_EMPTY_RULES", second.getAction().getType());
+            assertEquals(1, second.getRuleList().size(), "Plugin without rules should still have generated empty rule");
+            assertEquals("", second.getRuleList().get(0).getKey());
+        }
     }
 
     @Nested
@@ -262,6 +306,33 @@ class WorkflowApiIntegrationTest {
             assertFalse(workflowEntityAndLinkingIdMappingRepository.findAllByWorkflowEntitySettingId(entitySetting.getId()).isEmpty(),
                     "Mappings should remain when delete is rejected");
         }
+
+        @Test
+        @DisplayName("DELETE rejects corrupted mapping with blank linkingId and keeps DB unchanged")
+        void deleteWorkflowShouldRejectBlankLinkingIdAndKeepData() throws Exception {
+            WorkflowEntitySetting entitySetting = workflowEntitySettingRepository.saveAndFlush(
+                    WorkflowEntitySetting.builder()
+                            .applicationName(CORRUPT_APPLICATION_NAME)
+                            .enabled(true)
+                            .build()
+            );
+            workflowEntityAndLinkingIdMappingRepository.saveAndFlush(WorkflowEntityAndLinkingIdMapping.builder()
+                    .workflowEntitySetting(entitySetting)
+                    .logicOrder(1)
+                    .linkingId(" ")
+                    .remark("corrupted")
+                    .build());
+
+            mockMvc.perform(delete("/api/workflow").param("applicationName", CORRUPT_APPLICATION_NAME))
+                    .andExpect(status().isBadRequest());
+
+            assertEquals(1,
+                    workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName(CORRUPT_APPLICATION_NAME).size(),
+                    "Entity setting should remain when delete fails");
+            assertEquals(1,
+                    workflowEntityAndLinkingIdMappingRepository.findAllByWorkflowEntitySettingId(entitySetting.getId()).size(),
+                    "Mapping should remain when delete fails");
+        }
     }
 
     @Nested
@@ -320,6 +391,142 @@ class WorkflowApiIntegrationTest {
                     workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName(SOURCE_APPLICATION_NAME).size(),
                     "Deleting target should not remove source workflow");
         }
+
+        @Test
+        @DisplayName("Auto-copy to existing target replaces target old workflow completely")
+        void autoCopyToExistingTargetReplacesOldData() throws Exception {
+            WorkFlow source = WorkFlow.builder()
+                    .pluginList(List.of(
+                            plugin(1, "source-first", "COPY_SRC_A", List.of("$.s1")),
+                            plugin(2, "source-second", "COPY_SRC_B", List.of("$.s2"))
+                    ))
+                    .uiMapList(List.of(Map.of("id", "source-edge")))
+                    .build();
+            WorkFlow oldTarget = WorkFlow.builder()
+                    .pluginList(List.of(
+                            plugin(99, "target-old", "COPY_OLD", List.of("$.old"))
+                    ))
+                    .uiMapList(List.of(Map.of("id", "target-old-edge")))
+                    .build();
+
+            postWorkflow(SOURCE_APPLICATION_NAME, source).andExpect(status().isOk());
+            postWorkflow(TARGET_APPLICATION_NAME, oldTarget).andExpect(status().isOk());
+
+            WorkflowEntitySetting targetBefore = workflowEntitySettingRepository
+                    .getWorkflowEntitySettingByApplicationName(TARGET_APPLICATION_NAME)
+                    .get(0);
+            List<WorkflowEntityAndLinkingIdMapping> oldMappings = workflowEntityAndLinkingIdMappingRepository
+                    .findAllByWorkflowEntitySettingId(targetBefore.getId());
+            List<WorkflowRuleAndType> oldRuleAndTypes = workflowRuleAndTypeRepository.findAllByLinkingIdIn(
+                    oldMappings.stream().map(WorkflowEntityAndLinkingIdMapping::getLinkingId).toList()
+            );
+            List<Long> oldRuleIds = oldRuleAndTypes.stream().map(rt -> rt.getWorkflowRule().getId()).distinct().toList();
+            List<Long> oldTypeIds = oldRuleAndTypes.stream().map(rt -> rt.getWorkflowType().getId()).distinct().toList();
+
+            mockMvc.perform(post("/api/workflow/autoCopy")
+                            .param("fromApplicationName", SOURCE_APPLICATION_NAME)
+                            .param("toApplicationName", TARGET_APPLICATION_NAME)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{}"))
+                    .andExpect(status().isOk());
+
+            WorkflowEntitySetting targetAfter = workflowEntitySettingRepository
+                    .getWorkflowEntitySettingByApplicationName(TARGET_APPLICATION_NAME)
+                    .get(0);
+            assertEquals(targetBefore.getId(), targetAfter.getId(),
+                    "Existing target entity row should be reused during auto-copy");
+
+            for (WorkflowEntityAndLinkingIdMapping oldMapping : oldMappings) {
+                assertFalse(workflowEntityAndLinkingIdMappingRepository.existsById(oldMapping.getId()),
+                        "Old target mapping should be removed: " + oldMapping.getId());
+            }
+            for (WorkflowRuleAndType oldRuleAndType : oldRuleAndTypes) {
+                assertFalse(workflowRuleAndTypeRepository.existsById(oldRuleAndType.getId()),
+                        "Old target rule-type mapping should be removed: " + oldRuleAndType.getId());
+            }
+            for (Long oldRuleId : oldRuleIds) {
+                assertFalse(workflowRuleRepository.existsById(oldRuleId),
+                        "Old target rule should be removed: " + oldRuleId);
+            }
+            for (Long oldTypeId : oldTypeIds) {
+                assertFalse(workflowTypeRepository.existsById(oldTypeId),
+                        "Old target type should be removed: " + oldTypeId);
+            }
+
+            WorkFlow copiedTarget = getWorkflow(TARGET_APPLICATION_NAME);
+            assertEquals(2, copiedTarget.getPluginList().size(),
+                    "Target should now match source workflow plugin count");
+            assertEquals(List.of("source-first", "source-second"),
+                    copiedTarget.getPluginList().stream().map(Plugin::getDescription).toList());
+        }
+    }
+
+    @Nested
+    @DisplayName("Failure and guard scenarios")
+    class FailureAndGuardChecks {
+
+        @Test
+        @DisplayName("POST without request body returns 400 and does not create any DB rows")
+        void postWithoutBodyShouldNotCreateData() throws Exception {
+            mockMvc.perform(post("/api/workflow")
+                            .param("applicationName", APPLICATION_NAME)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isBadRequest());
+
+            assertEquals(0, workflowEntitySettingRepository.count());
+            assertEquals(0, workflowEntityAndLinkingIdMappingRepository.count());
+            assertEquals(0, workflowRuleAndTypeRepository.count());
+            assertEquals(0, workflowRuleRepository.count());
+            assertEquals(0, workflowTypeRepository.count());
+        }
+
+        @Test
+        @DisplayName("DELETE unknown app returns 400 and does not affect other workflow data")
+        void deleteUnknownAppShouldNotAffectOtherData() throws Exception {
+            postWorkflow(KEEP_APPLICATION_NAME, loadTestWorkflow())
+                    .andExpect(status().isOk());
+
+            WorkflowEntitySetting keepEntity = workflowEntitySettingRepository
+                    .getWorkflowEntitySettingByApplicationName(KEEP_APPLICATION_NAME)
+                    .get(0);
+            int mappingCountBefore = workflowEntityAndLinkingIdMappingRepository
+                    .findAllByWorkflowEntitySettingId(keepEntity.getId()).size();
+
+            mockMvc.perform(delete("/api/workflow").param("applicationName", "UNKNOWN_APP"))
+                    .andExpect(status().isBadRequest());
+
+            assertEquals(1,
+                    workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName(KEEP_APPLICATION_NAME).size());
+            int mappingCountAfter = workflowEntityAndLinkingIdMappingRepository
+                    .findAllByWorkflowEntitySettingId(keepEntity.getId()).size();
+            assertEquals(mappingCountBefore, mappingCountAfter,
+                    "Failed delete should not alter existing application's mappings");
+        }
+
+        @Test
+        @DisplayName("Endpoints return 400 when duplicate application rows exist")
+        void duplicateApplicationRowsShouldBeRejected() throws Exception {
+            workflowEntitySettingRepository.saveAndFlush(WorkflowEntitySetting.builder()
+                    .applicationName(DUPLICATE_APPLICATION_NAME)
+                    .enabled(true)
+                    .build());
+            workflowEntitySettingRepository.saveAndFlush(WorkflowEntitySetting.builder()
+                    .applicationName(DUPLICATE_APPLICATION_NAME)
+                    .enabled(false)
+                    .build());
+
+            mockMvc.perform(get("/api/workflow").param("applicationName", DUPLICATE_APPLICATION_NAME))
+                    .andExpect(status().isBadRequest());
+            mockMvc.perform(delete("/api/workflow").param("applicationName", DUPLICATE_APPLICATION_NAME))
+                    .andExpect(status().isBadRequest());
+            postWorkflow(DUPLICATE_APPLICATION_NAME,
+                    WorkFlow.builder().pluginList(List.of(plugin(1, "dup", "DUP", List.of("$.dup")))).build())
+                    .andExpect(status().isBadRequest());
+
+            assertEquals(2,
+                    workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName(DUPLICATE_APPLICATION_NAME).size(),
+                    "Duplicate rows should remain unchanged after rejected requests");
+        }
     }
 
     private org.springframework.test.web.servlet.ResultActions postWorkflow(String applicationName, WorkFlow workFlow) throws Exception {
@@ -327,6 +534,13 @@ class WorkflowApiIntegrationTest {
                 .param("applicationName", applicationName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(workFlow)));
+    }
+
+    private WorkFlow getWorkflow(String applicationName) throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/workflow").param("applicationName", applicationName))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readValue(result.getResponse().getContentAsString(), WorkFlow.class);
     }
 
     private Plugin plugin(int id, String description, String actionType, List<String> ruleKeys) {
