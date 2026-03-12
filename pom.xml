@@ -40,6 +40,16 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Spring Boot 4 tracing auto-configuration for Brave -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-micrometer-tracing-brave</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
         <!-- Spring Data JPA - for low-code data-driven apps -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -100,6 +110,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Logbook - HTTP request/response logging -->
+        <dependency>
+            <groupId>org.zalando</groupId>
+            <artifactId>logbook-spring-boot-starter</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+        <!-- P6Spy - SQL logging -->
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.9.1</version>
         <!-- H2 for integration tests -->
         <dependency>
             <groupId>com.h2database</groupId>
