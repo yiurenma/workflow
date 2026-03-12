@@ -52,7 +52,7 @@ public class WorkflowGetController {
     })
     @GetMapping(value = "/workflow", produces = MediaType.APPLICATION_JSON_VALUE)
     public WorkFlow getWorkFlow(
-            @RequestParam(required = true) @Parameter(example = "UK_DRFI", required = true,
+            @RequestParam(required = true) @Parameter(example = "APP_A", required = true,
                     description = "Application identifier for the workflow") @NotNull String applicationName) {
 
         List<WorkflowEntitySetting> entitySettingList =

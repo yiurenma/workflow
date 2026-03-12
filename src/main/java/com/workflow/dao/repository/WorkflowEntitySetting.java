@@ -59,7 +59,7 @@ public class WorkflowEntitySetting extends Auditable implements Serializable {
     @Comment("Default service account for API calls")
     private String defaultServiceAccount;
     @Column(nullable = true)
-    @Comment("Region or environment (e.g. US, EU, prod, dev)")
+    @Comment("Region or environment (e.g. prod, dev)")
     private String region;
     @Column(nullable = true)
     @Comment("Whether this entity setting is active")
