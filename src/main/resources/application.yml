@@ -56,7 +56,14 @@ logging:
 
 logbook:
   format:
-    style: http
+    style: json
+  exclude:
+    - /actuator/**
+    - /health
+    - /error
+    - /v3/api-docs/**
+    - /swagger-ui/**
+    - /swagger-ui.html
   obfuscate:
     headers:
       - Authorization
