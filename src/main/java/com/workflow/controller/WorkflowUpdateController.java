@@ -57,7 +57,7 @@ public class WorkflowUpdateController {
     @Transactional
     @PostMapping(value = "/workflow", consumes = MediaType.APPLICATION_JSON_VALUE)
     public WorkFlow updateWorkFlow(
-            @RequestParam(required = true) @Parameter(example = "UK_DRFI", required = true,
+            @RequestParam(required = true) @Parameter(example = "APP_A", required = true,
                     description = "Application identifier for the workflow") @NotNull String applicationName,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,

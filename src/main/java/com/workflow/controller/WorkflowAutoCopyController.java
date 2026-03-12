@@ -41,9 +41,9 @@ public class WorkflowAutoCopyController {
     })
     @PostMapping(value = "/workflow/autoCopy", consumes = MediaType.APPLICATION_JSON_VALUE)
     public WorkFlow autoCopyWorkFlow(
-            @RequestParam(required = true) @Parameter(example = "UK_DRFI", required = true,
+            @RequestParam(required = true) @Parameter(example = "APP_A", required = true,
                     description = "Source application name") @NotNull String fromApplicationName,
-            @RequestParam(required = true) @Parameter(example = "UK_DRFI_COPY", required = true,
+            @RequestParam(required = true) @Parameter(example = "APP_A_COPY", required = true,
                     description = "Target application name") @NotNull String toApplicationName) {
 
         if (fromApplicationName.equals(toApplicationName)) {
