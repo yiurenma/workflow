@@ -27,15 +27,15 @@ import java.util.List;
                 Spring Data REST endpoints for entity setting CRUD and search.
                                 
                 Default CRUD endpoints:
-                - GET /workflow/entity-setting
-                - POST /workflow/entity-setting
-                - GET /workflow/entity-setting/{id}
-                - PUT /workflow/entity-setting/{id}
-                - PATCH /workflow/entity-setting/{id}
-                - DELETE /workflow/entity-setting/{id}
+                - GET /entity-setting
+                - POST /entity-setting
+                - GET /entity-setting/{id}
+                - PUT /entity-setting/{id}
+                - PATCH /entity-setting/{id}
+                - DELETE /entity-setting/{id}
                                 
                 Search endpoint:
-                - GET /workflow/entity-setting/search/getWorkflowEntitySettingByApplicationName?applicationName=ITEST_APP
+                - GET /entity-setting/search/getWorkflowEntitySettingByApplicationName?applicationName=ITEST_APP
                 """
 )
 public interface WorkflowEntitySettingRepository
