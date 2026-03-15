@@ -15,7 +15,7 @@ public class SpringDocOpenUiConfiguration {
     public OpenAPI workflowOpenAPI() {
         return new OpenAPI().info(new Info()
                 .title("Low-code Workflow API")
-                .description("APIs for creating, reading, copying and deleting low-code workflows by application name.")
+                .description("APIs for workflow CRUD plus entity-setting query and revision history.")
                 .version("v1"));
     }
 

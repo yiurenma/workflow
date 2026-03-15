@@ -14,7 +14,7 @@ import java.util.List;
 
 @Repository
 @RequestMapping(value = "/workflow/")
-@RepositoryRestResource(path = "linkingId-entity-mapping")
+@RepositoryRestResource(path = "linkingId-entity-mapping", exported = false)
 @Tag(name = "DB Repository", description = "[Tracking] Workflow DB Records")
 public interface WorkflowEntityAndLinkingIdMappingRepository extends
         QuerydslPredicateExecutor<WorkflowEntityAndLinkingIdMapping>,

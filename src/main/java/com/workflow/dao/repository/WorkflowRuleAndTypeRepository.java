@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 @RequestMapping(value = "/workflow/")
-@RepositoryRestResource(path = "rule-type-entity-mapping")
+@RepositoryRestResource(path = "rule-type-entity-mapping", exported = false)
 @Tag(name = "DB Repository", description = "[Tracking] Workflow DB Records")
 public interface WorkflowRuleAndTypeRepository extends
         QuerydslPredicateExecutor<WorkflowRuleAndType>,

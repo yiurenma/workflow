@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Repository
 @RequestMapping(value = "/workflow/")
-@RepositoryRestResource(path = "report")
+@RepositoryRestResource(path = "report", exported = false)
 @Tag(name = "DB Repository", description = "[Tracking] Workflow Report")
 public interface WorkflowReportRepository extends
         QuerydslPredicateExecutor<WorkflowReport>,
