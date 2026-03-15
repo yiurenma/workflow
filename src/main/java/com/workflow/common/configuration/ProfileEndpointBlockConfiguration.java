@@ -26,7 +26,11 @@ public class ProfileEndpointBlockConfiguration {
                 String requestUri = request.getRequestURI();
                 String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
                 String profileRoot = contextPath + "/profile";
-                if (requestUri.equals(profileRoot) || requestUri.startsWith(profileRoot + "/")) {
+                String apiProfileRoot = contextPath + "/api/profile";
+                if (requestUri.equals(profileRoot)
+                        || requestUri.startsWith(profileRoot + "/")
+                        || requestUri.equals(apiProfileRoot)
+                        || requestUri.startsWith(apiProfileRoot + "/")) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
@@ -36,7 +40,7 @@ public class ProfileEndpointBlockConfiguration {
 
         FilterRegistrationBean<OncePerRequestFilter> registrationBean = new FilterRegistrationBean<>(filter);
         registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        registrationBean.addUrlPatterns("/profile", "/profile/*");
+        registrationBean.addUrlPatterns("/profile", "/profile/*", "/api/profile", "/api/profile/*");
         return registrationBean;
     }
 }

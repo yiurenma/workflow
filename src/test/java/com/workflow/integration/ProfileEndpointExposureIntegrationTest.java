@@ -22,9 +22,11 @@ class ProfileEndpointExposureIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("/profile endpoint should not be exposed")
+    @DisplayName("/profile and /api/profile endpoints should not be exposed")
     void profileEndpointShouldReturn404() throws Exception {
         mockMvc.perform(get("/profile"))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/profile"))
                 .andExpect(status().isNotFound());
     }
 
@@ -39,5 +41,7 @@ class ProfileEndpointExposureIntegrationTest {
 
         assertFalse(apiDocs.contains("\"/profile\""));
         assertFalse(apiDocs.contains("\"/profile/entity-setting\""));
+        assertFalse(apiDocs.contains("\"/api/profile\""));
+        assertFalse(apiDocs.contains("\"/api/profile/entity-setting\""));
     }
 }

@@ -30,6 +30,8 @@ springdoc:
   paths-to-exclude:
     - /profile
     - /profile/**
+    - /api/profile
+    - /api/profile/**
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
