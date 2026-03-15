@@ -10,6 +10,8 @@ import com.workflow.dao.repository.WorkflowEntityAndLinkingIdMappingRepository;
 import com.workflow.dao.repository.WorkflowRuleAndType;
 import com.workflow.dao.repository.WorkflowRuleAndTypeRepository;
 import com.workflow.dao.repository.WorkflowType;
+import com.workflow.common.exception.ApiBusinessException;
+import com.workflow.common.exception.ApiErrorCatalog;
 import com.workflow.common.util.Base64Util;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,7 +52,10 @@ public class WorkflowGetController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Workflow loaded successfully"),
-            @ApiResponse(responseCode = "400", description = "Application name does not exist exactly once")
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Bad request. Error codes: WF-400-101 (applicationName must exist exactly once)."
+            )
     })
     @GetMapping(value = "/workflow", produces = MediaType.APPLICATION_JSON_VALUE)
     public WorkFlow getWorkFlow(
@@ -62,8 +66,11 @@ public class WorkflowGetController {
                 workflowEntitySettingRepository.getWorkflowEntitySettingByApplicationName(applicationName);
 
         if (entitySettingList.size() != 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Application name must exist exactly once; found: " + entitySettingList.size());
+            throw new ApiBusinessException(
+                    HttpStatus.BAD_REQUEST,
+                    ApiErrorCatalog.WORKFLOW_APP_NOT_UNIQUE,
+                    "Application name must exist exactly once; found: " + entitySettingList.size()
+            );
         }
 
         WorkflowEntitySetting entitySetting = entitySettingList.get(0);
