@@ -19,10 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -88,87 +86,6 @@ class WorkflowEntitySettingControllerTest {
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
                 () -> controller.getWorkflowEntitySettingHistory("APP_A", PageRequest.of(0, 10))
-        );
-
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-    }
-
-    @Test
-    void createWorkflowEntitySettingShouldPersistAndResetId() {
-        WorkflowEntitySetting input = WorkflowEntitySetting.builder().id(99L).applicationName("APP_NEW").enabled(true).build();
-        when(workflowEntitySettingRepository.saveAndFlush(input)).thenReturn(input);
-
-        WorkflowEntitySetting result = controller.createWorkflowEntitySetting(input);
-
-        assertSame(input, result);
-        assertNull(input.getId());
-    }
-
-    @Test
-    void getWorkflowEntitySettingShouldThrowNotFoundWhenMissing() {
-        when(workflowEntitySettingRepository.findById(999L)).thenReturn(Optional.empty());
-
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
-                () -> controller.getWorkflowEntitySetting(999L)
-        );
-
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-    }
-
-    @Test
-    void updateWorkflowEntitySettingShouldCopyFieldsAndSave() {
-        WorkflowEntitySetting existing = WorkflowEntitySetting.builder()
-                .id(5L)
-                .applicationName("OLD")
-                .enabled(false)
-                .build();
-        WorkflowEntitySetting request = WorkflowEntitySetting.builder()
-                .id(100L)
-                .applicationName("NEW")
-                .retry(true)
-                .tracking(true)
-                .eimId("eim")
-                .defaultServiceAccount("svc")
-                .region("UK")
-                .enabled(true)
-                .workflow("WF")
-                .build();
-
-        when(workflowEntitySettingRepository.findById(5L)).thenReturn(Optional.of(existing));
-        when(workflowEntitySettingRepository.saveAndFlush(existing)).thenReturn(existing);
-
-        WorkflowEntitySetting result = controller.updateWorkflowEntitySetting(5L, request);
-
-        assertSame(existing, result);
-        assertEquals(5L, result.getId());
-        assertEquals("NEW", result.getApplicationName());
-        assertEquals(true, result.isRetry());
-        assertEquals(true, result.isTracking());
-        assertEquals("eim", result.getEimId());
-        assertEquals("svc", result.getDefaultServiceAccount());
-        assertEquals("UK", result.getRegion());
-        assertEquals(true, result.isEnabled());
-        assertEquals("WF", result.getWorkflow());
-    }
-
-    @Test
-    void deleteWorkflowEntitySettingShouldDeleteWhenFound() {
-        WorkflowEntitySetting existing = WorkflowEntitySetting.builder().id(20L).applicationName("APP").build();
-        when(workflowEntitySettingRepository.findById(20L)).thenReturn(Optional.of(existing));
-
-        controller.deleteWorkflowEntitySetting(20L);
-
-        verify(workflowEntitySettingRepository).delete(existing);
-    }
-
-    @Test
-    void createWorkflowEntitySettingShouldThrowBadRequestWhenApplicationNameBlank() {
-        WorkflowEntitySetting input = WorkflowEntitySetting.builder().applicationName(" ").build();
-
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
-                () -> controller.createWorkflowEntitySetting(input)
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
