@@ -3,6 +3,7 @@ package com.workflow.common.configuration;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.OpenAPI;
 import org.junit.jupiter.api.Test;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.web.method.HandlerMethod;
 
@@ -10,6 +11,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpringDocOpenUiConfigurationTest {
 
@@ -38,6 +40,24 @@ class SpringDocOpenUiConfigurationTest {
         assertEquals("v1", openAPI.getInfo().getVersion());
         org.junit.jupiter.api.Assertions.assertTrue(openAPI.getInfo().getDescription().contains("WF-400-000"));
         org.junit.jupiter.api.Assertions.assertTrue(openAPI.getInfo().getDescription().contains("WF-500-000"));
+    }
+
+    @Test
+    void repositoryTagDocumentationCustomizerShouldAddTopLevelRepositoryTags() {
+        SpringDocOpenUiConfiguration configuration = new SpringDocOpenUiConfiguration();
+        OpenApiCustomizer customizer = configuration.repositoryTagDocumentationCustomizer();
+        OpenAPI openAPI = new OpenAPI();
+
+        customizer.customise(openAPI);
+
+        assertTrue(openAPI.getTags().stream().anyMatch(t ->
+                "Entity Setting Repository API".equals(t.getName())
+                        && t.getDescription() != null
+                        && t.getDescription().contains("/api/entity-setting")));
+        assertTrue(openAPI.getTags().stream().anyMatch(t ->
+                "Workflow User Repository API".equals(t.getName())
+                        && t.getDescription() != null
+                        && t.getDescription().contains("/api/workflow-user")));
     }
 
     private void helper() {
