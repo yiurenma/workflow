@@ -2,12 +2,12 @@ package com.workflow.common.configuration;
 
 import com.workflow.dao.repository.WorkflowEntityAndLinkingIdMapping;
 import com.workflow.dao.repository.WorkflowEntitySetting;
-import com.workflow.dao.repository.MessageUser;
 import com.workflow.dao.repository.WorkflowRecord;
 import com.workflow.dao.repository.WorkflowReport;
 import com.workflow.dao.repository.WorkflowRule;
 import com.workflow.dao.repository.WorkflowRuleAndType;
 import com.workflow.dao.repository.WorkflowType;
+import com.workflow.dao.repository.WorkflowUser;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
@@ -26,7 +26,7 @@ public class SpringDataRestConfiguration implements RepositoryRestConfigurer {
         config.exposeIdsFor(
                 WorkflowEntitySetting.class,
                 WorkflowEntityAndLinkingIdMapping.class,
-                MessageUser.class,
+                WorkflowUser.class,
                 WorkflowRule.class,
                 WorkflowType.class,
                 WorkflowRuleAndType.class,

@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Repository
 @RequestMapping(value = "/workflow/")
-@RepositoryRestResource(path = "user")
+@RepositoryRestResource(path = "workflow-user")
 @Hidden
-@Tag(name = "DB Repository", description = "[Tracking] Message user repository")
-public interface MessageUserRepository extends
-        QuerydslPredicateExecutor<MessageUser>,
-        JpaRepository<MessageUser, Long>,
-        JpaSpecificationExecutor<MessageUser> {
+@Tag(name = "DB Repository", description = "[Tracking] Workflow user repository")
+public interface WorkflowUserRepository extends
+        QuerydslPredicateExecutor<WorkflowUser>,
+        JpaRepository<WorkflowUser, Long>,
+        JpaSpecificationExecutor<WorkflowUser> {
 }

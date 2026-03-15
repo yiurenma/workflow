@@ -2,12 +2,12 @@ package com.workflow.common.configuration;
 
 import com.workflow.dao.repository.WorkflowEntityAndLinkingIdMapping;
 import com.workflow.dao.repository.WorkflowEntitySetting;
-import com.workflow.dao.repository.MessageUser;
 import com.workflow.dao.repository.WorkflowRecord;
 import com.workflow.dao.repository.WorkflowReport;
 import com.workflow.dao.repository.WorkflowRule;
 import com.workflow.dao.repository.WorkflowRuleAndType;
 import com.workflow.dao.repository.WorkflowType;
+import com.workflow.dao.repository.WorkflowUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.rest.core.config.MetadataConfiguration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
@@ -35,7 +35,7 @@ class SpringDataRestConfigurationTest {
         verify(repositoryRestConfiguration).exposeIdsFor(
                 WorkflowEntitySetting.class,
                 WorkflowEntityAndLinkingIdMapping.class,
-                MessageUser.class,
+                WorkflowUser.class,
                 WorkflowRule.class,
                 WorkflowType.class,
                 WorkflowRuleAndType.class,
