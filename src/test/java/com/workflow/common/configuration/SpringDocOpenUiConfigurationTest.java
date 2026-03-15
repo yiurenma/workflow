@@ -32,7 +32,7 @@ class SpringDocOpenUiConfigurationTest {
         SpringDocOpenUiConfiguration configuration = new SpringDocOpenUiConfiguration();
         OpenAPI openAPI = configuration.workflowOpenAPI();
 
-        assertEquals("Low-code Workflow API", openAPI.getInfo().getTitle());
+        assertEquals("Workflow Operation API", openAPI.getInfo().getTitle());
         assertEquals("v1", openAPI.getInfo().getVersion());
     }
 
