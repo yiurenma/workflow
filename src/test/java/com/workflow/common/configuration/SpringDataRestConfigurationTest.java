@@ -29,6 +29,7 @@ class SpringDataRestConfigurationTest {
 
         configuration.configureRepositoryRestConfiguration(repositoryRestConfiguration, corsRegistry);
 
+        verify(repositoryRestConfiguration).setBasePath("/api");
         verify(metadataConfiguration).setAlpsEnabled(false);
         verify(repositoryRestConfiguration).exposeIdsFor(
                 WorkflowEntitySetting.class,

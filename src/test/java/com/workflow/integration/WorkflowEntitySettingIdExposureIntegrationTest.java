@@ -23,18 +23,18 @@ class WorkflowEntitySettingIdExposureIntegrationTest extends AbstractWorkflowInt
                 .get(0)
                 .getId();
 
-        MvcResult listResult = mockMvc.perform(get("/entity-setting")
+        MvcResult listResult = mockMvc.perform(get("/api/entity-setting")
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode listRoot = objectMapper.readTree(listResult.getResponse().getContentAsString());
         JsonNode itemInList = findEntitySettingByApplicationName(listRoot, APP_NAME);
-        assertNotNull(itemInList, "Expected APP_NAME item in /entity-setting response");
+        assertNotNull(itemInList, "Expected APP_NAME item in /api/entity-setting response");
         assertTrue(itemInList.has("id"), "Repository list response should expose id");
         assertEquals(expectedId.longValue(), itemInList.get("id").asLong());
 
-        MvcResult byIdResult = mockMvc.perform(get("/entity-setting/{id}", expectedId))
+        MvcResult byIdResult = mockMvc.perform(get("/api/entity-setting/{id}", expectedId))
                 .andExpect(status().isOk())
                 .andReturn();
         JsonNode byIdRoot = objectMapper.readTree(byIdResult.getResponse().getContentAsString());

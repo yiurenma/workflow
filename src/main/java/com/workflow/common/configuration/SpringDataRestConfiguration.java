@@ -17,6 +17,8 @@ public class SpringDataRestConfiguration implements RepositoryRestConfigurer {
 
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
+        // Prefix all Spring Data REST endpoints with /api.
+        config.setBasePath("/api");
         // Disable ALPS profile metadata endpoints (e.g. /profile, /profile/{resource}).
         config.getMetadataConfiguration().setAlpsEnabled(false);
         // Expose DB ids in Spring Data REST responses.
