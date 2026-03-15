@@ -15,7 +15,7 @@ import java.util.List;
 
 @Repository
 @RequestMapping(value = "/workflow/")
-@RepositoryRestResource(path = "record")
+@RepositoryRestResource(path = "record", exported = false)
 @Tag(name = "DB Repository", description = "[Tracking] Workflow DB Records")
 public interface WorkflowRecordRepository extends
         QuerydslPredicateExecutor<WorkflowRecord>,
