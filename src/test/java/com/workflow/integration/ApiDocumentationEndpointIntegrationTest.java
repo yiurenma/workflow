@@ -62,5 +62,9 @@ class ApiDocumentationEndpointIntegrationTest {
         assertTrue(apiDocs.contains("\"Business Error\""));
         assertTrue(apiDocs.contains("\"System Error\""));
         assertTrue(apiDocs.contains("\"/api/workflow-user\""));
+        assertTrue(apiDocs.contains("\"name\":\"Workflow User Repository API\""));
+        assertTrue(apiDocs.contains("Spring Data REST endpoints for workflow user CRUD and query."));
+        assertTrue(apiDocs.contains("\"name\":\"Entity Setting Repository API\""));
+        assertTrue(apiDocs.contains("Spring Data REST endpoints for entity setting CRUD and search."));
     }
 }

@@ -13,9 +13,14 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.tags.Tag;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class SpringDocOpenUiConfiguration {
@@ -47,6 +52,42 @@ public class SpringDocOpenUiConfiguration {
             ensureErrorResponse(responses, "409", "Business Error", businessErrorExample());
             ensureErrorResponse(responses, "500", "System Error", systemErrorExample());
             return operation;
+        };
+    }
+
+    @Bean
+    public OpenApiCustomizer repositoryTagDocumentationCustomizer() {
+        return openApi -> {
+            ensureTopLevelTag(
+                    openApi,
+                    "Entity Setting Repository API",
+                    """
+                            Spring Data REST endpoints for entity setting CRUD and search.
+
+                            Default CRUD endpoints:
+                            - GET /api/entity-setting
+                            - POST /api/entity-setting
+                            - GET /api/entity-setting/{id}
+                            - PUT /api/entity-setting/{id}
+                            - PATCH /api/entity-setting/{id}
+                            - DELETE /api/entity-setting/{id}
+                            """
+            );
+            ensureTopLevelTag(
+                    openApi,
+                    "Workflow User Repository API",
+                    """
+                            Spring Data REST endpoints for workflow user CRUD and query.
+
+                            Default CRUD endpoints:
+                            - GET /api/workflow-user
+                            - POST /api/workflow-user
+                            - GET /api/workflow-user/{id}
+                            - PUT /api/workflow-user/{id}
+                            - PATCH /api/workflow-user/{id}
+                            - DELETE /api/workflow-user/{id}
+                            """
+            );
         };
     }
 
@@ -128,5 +169,24 @@ public class SpringDocOpenUiConfiguration {
                 .addProperty("sessionCorrelation", new StringSchema().example("8fa61bf75ef836e3")));
 
         return components;
+    }
+
+    private void ensureTopLevelTag(OpenAPI openApi, String name, String description) {
+        List<Tag> tags = openApi.getTags();
+        if (tags == null) {
+            tags = new ArrayList<>();
+            openApi.setTags(tags);
+        }
+        Tag existing = tags.stream()
+                .filter(tag -> name.equals(tag.getName()))
+                .findFirst()
+                .orElse(null);
+        if (existing == null) {
+            tags.add(new Tag().name(name).description(description.strip()));
+            return;
+        }
+        if (existing.getDescription() == null || existing.getDescription().isBlank()) {
+            existing.setDescription(description.strip());
+        }
     }
 }
