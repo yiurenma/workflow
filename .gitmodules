@@ -17,4 +17,4 @@
 [submodule ".claude"]
 	path = .claude
 	url = https://github.com/yiurenma/workflow-claude-config.git
-	branch = master
+	branch = main
