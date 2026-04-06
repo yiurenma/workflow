@@ -1,0 +1,6 @@
+[submodule "workflow-operation-api"]
+	path = workflow-operation-api
+	url = https://github.com/yiurenma/workflow-operation-api.git
+[submodule "workflow-ui"]
+	path = workflow-ui
+	url = https://github.com/yiurenma/workflow-ui.git
