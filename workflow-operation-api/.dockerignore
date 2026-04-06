@@ -1,9 +1,0 @@
-target/
-.git
-.github
-.idea
-*.iml
-.DS_Store
-README.md
-docs/
-agent-tools/
