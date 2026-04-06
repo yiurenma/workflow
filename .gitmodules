@@ -1,19 +1,19 @@
 [submodule "workflow-online-api"]
 	path = workflow-online-api
 	url = https://github.com/yiurenma/workflow-online-api.git
-	branch = master
+	branch = develop
 [submodule "workflow-operation-api"]
 	path = workflow-operation-api
 	url = https://github.com/yiurenma/workflow-operation-api.git
-	branch = master
+	branch = main
 [submodule "workflow-ui"]
 	path = workflow-ui
 	url = https://github.com/yiurenma/workflow-ui.git
-	branch = master
+	branch = main
 [submodule "workflow-agent-teams"]
 	path = workflow-agent-teams
 	url = https://github.com/yiurenma/workflow-agent-teams.git
-	branch = master
+	branch = main
 [submodule ".claude"]
 	path = .claude
 	url = https://github.com/yiurenma/workflow-claude-config.git
