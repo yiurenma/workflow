@@ -8,7 +8,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 |---|---|
 | PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
-| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs |
+| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; runs UAT after merge and reports to human |
 | Delivery Manager | Coordinates implementation — only after all three docs are approved |
 | Frontend / Backend devs | Implement only after Test Manager doc is approved by the human |
 
@@ -31,12 +31,21 @@ This file is read by Claude Code at the start of every session. All rules below 
                   (see Commit & Push Rules below for each repo's target branch)
                c. Push the target branch to origin
                d. Do the same for workflow-agent-teams (docs + TODO.md)
-9. Mark TODO item as Done in workflow-agent-teams/TODO.md
+9. UAT       → Test Manager runs acceptance tests on the deployed/staging environment
+               and presents a UAT report to the human:
+               - All cases PASS → report to human, proceed to step 10
+               - Any FAIL → Test Manager documents each failure, adds a new TODO
+                 item to workflow-agent-teams/TODO.md describing the defect/gap,
+                 then the full cycle (steps 1–10) restarts for that new item
+10. Mark TODO item as Done in workflow-agent-teams/TODO.md
+    (only after the human confirms UAT is acceptable)
 ```
 
 **Step 4 is a hard gate.** Do not proceed to step 5 without the human typing "approve" or equivalent confirmation.
 
 **Step 8 must be fully completed** — do not stop after committing to a feature branch. Always merge to the target branch and push. Do not ask the human to merge; do it as part of the step.
+
+**Step 9 (UAT) is a hard gate.** Do not mark a TODO as Done until the human confirms UAT is acceptable. If failures are found, do not mark Done — open new TODO items and restart the cycle for each defect.
 
 ## Document Locations
 
@@ -44,6 +53,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 - Arch docs: `workflow-agent-teams/docs/arch-doc-*.md`
 - Test docs: `workflow-agent-teams/docs/test-doc-*.md`
 - QA test reports: `workflow-agent-teams/docs/ui-test-report-vX.Y.md`
+- UAT reports: `workflow-agent-teams/docs/uat-report-vX.Y.md`
 - TODO backlog: `workflow-agent-teams/TODO.md`
 
 ## Document Status Lifecycle
@@ -64,7 +74,10 @@ Only update status to **Approved** after the human explicitly confirms.
 
 - Do NOT write code before PM doc + Arch doc + test doc are all approved
 - Do NOT mark a TODO item as Done before code is pushed **and merged to the target branch**
+- Do NOT mark a TODO item as Done before UAT is confirmed PASS by the human
 - Do NOT skip the human approval gate (step 4) for any reason
+- Do NOT skip the UAT gate (step 9) — Test Manager must report UAT results to human before Done
 - Do NOT commit to wrong branches
 - Do NOT stop at a feature branch — always merge to the target branch (main / develop) and push as the final step
-- Do NOT skip the QA test report — every TODO item that involves code changes must have a `ui-test-report-vX.Y.md` committed to `workflow-agent-teams/docs/` before the item is marked Done
+- Do NOT skip the QA test report — every TODO item that involves code changes must have a `ui-test-report-vX.Y.md` committed to `workflow-agent-teams/docs/` before UAT begins
+- Do NOT silently absorb UAT failures — every failed UAT case becomes a new TODO item
