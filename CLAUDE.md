@@ -8,7 +8,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 |---|---|
 | PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
-| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; runs UAT after merge and reports to human |
+| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report |
 | Delivery Manager | Coordinates implementation — only after all three docs are approved |
 | Frontend / Backend devs | Implement only after Test Manager doc is approved by the human |
 
@@ -31,12 +31,18 @@ This file is read by Claude Code at the start of every session. All rules below 
                   (see Commit & Push Rules below for each repo's target branch)
                c. Push the target branch to origin
                d. Do the same for workflow-agent-teams (docs + TODO.md)
-9. UAT       → Test Manager runs acceptance tests on the deployed/staging environment
-               and presents a UAT report to the human:
-               - All cases PASS → report to human, proceed to step 10
-               - Any FAIL → Test Manager documents each failure, adds a new TODO
-                 item to workflow-agent-teams/TODO.md describing the defect/gap,
-                 then the full cycle (steps 1–10) restarts for that new item
+9. UAT       → Agent capability boundary: agents cannot render browser UI or
+               interact with the live site. UAT works as follows:
+               a. Test Manager verifies backend APIs directly where possible
+                  (curl / fetch against UAT environment URLs)
+               b. Test Manager produces a step-by-step UAT script for the human,
+                  listing exactly what to click, what to enter, and what to observe
+                  on https://workflow-ui-gamma.vercel.app
+               c. Human executes the script in the browser and reports results
+               d. Test Manager writes uat-report-vX.Y.md based on human's feedback:
+                  - All cases PASS → proceed to step 10
+                  - Any FAIL → document each failure, open a new TODO item in
+                    workflow-agent-teams/TODO.md, full cycle restarts for that item
 10. Mark TODO item as Done in workflow-agent-teams/TODO.md
     (only after the human confirms UAT is acceptable)
 ```
@@ -70,7 +76,9 @@ Only update status to **Approved** after the human explicitly confirms.
 | **operation-api** | https://workflow-operation-api.onrender.com |
 | **online-api** | https://workflow-online-api.onrender.com |
 
-Test Manager must use the Frontend UAT URL above for all UAT runs. Do not use localhost.
+Test Manager verifies backend APIs directly against the URLs above.
+For frontend UI tests, Test Manager produces a step-by-step script and the human executes it in the browser.
+Backend API calls can be verified by the agent via curl/fetch.
 
 ## Commit & Push Rules
 
