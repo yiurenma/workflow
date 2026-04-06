@@ -62,6 +62,16 @@ Draft → awaiting human approval → **Approved**
 
 Only update status to **Approved** after the human explicitly confirms.
 
+## UAT Environment
+
+| Service | URL |
+|---|---|
+| **Frontend (UAT)** | https://workflow-ui-gamma.vercel.app |
+| **operation-api** | https://workflow-operation-api.onrender.com |
+| **online-api** | https://workflow-online-api.onrender.com |
+
+Test Manager must use the Frontend UAT URL above for all UAT runs. Do not use localhost.
+
 ## Commit & Push Rules
 
 - `workflow-ui`: commit on `main`, push to `origin/main`
