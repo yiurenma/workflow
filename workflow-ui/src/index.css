@@ -1,0 +1,121 @@
+@layer theme, base, antd, components, utilities;
+@import "@xyflow/react/dist/style.css";
+@import "tailwindcss" important;
+
+/* 字体声明 */
+@font-face {
+  font-family: Inter;
+  src: url("../src/assets/fonts/Inter-Regular.ttf");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url("../src/assets/fonts/Inter-Medium.ttf");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url("../src/assets/fonts/Inter-SemiBold.ttf");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url("../src/assets/fonts/Inter-Bold.ttf");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-inter: Inter;
+  --color-hsbc-red: #e31e22;
+  --color-hsbc-medium-red: #ba1110;
+  --color-hsbc-dark-red: #730014;
+}
+
+.handle-style {
+  width: 8px;
+  height: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-color: #94A3B8;
+  background-position: center;
+  background-image: url("../src/assets/svg/plus.svg");
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+}
+
+.handle-style:hover {
+  background-color: #4F46E5;
+  transform: scale(1.25);
+  transition: all 0.15s ease;
+}
+
+/* Tighten Ant Design letter-spacing globally */
+body {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Refine Ant Design table headers */
+.ant-table-thead > tr > th {
+  background: #FAFAFA !important;
+  border-bottom: 1px solid #E4E4E7 !important;
+}
+
+/* Refine Ant Design drawer */
+.ant-drawer-header {
+  background: #FAFAFA !important;
+}
+
+/* React Flow minimap refinement */
+.react-flow__minimap {
+  border: 1px solid #E4E4E7;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* React Flow controls refinement */
+.react-flow__controls {
+  border: 1px solid #E4E4E7 !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+
+.react-flow__controls-button {
+  border-bottom: 1px solid #E4E4E7 !important;
+  background: #ffffff !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #F4F4F5 !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+@media (max-width: 767px) {
+  /* React Flow controls — bigger touch targets */
+  .react-flow__controls-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* MiniMap — hidden on mobile (also toggled in component) */
+  .react-flow__minimap {
+    display: none !important;
+  }
+}

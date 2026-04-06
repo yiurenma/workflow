@@ -1,0 +1,222 @@
+{
+  "pluginList": [
+    {
+      "id": 1,
+      "description": "Fetch customer profile from CRM (mock via httpbin)",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.customerId =~ /.+?/)]",
+          "remark": "customerId is present"
+        }
+      ],
+      "action": {
+        "type": "CONSUMER",
+        "provider": "MockCRM",
+        "remark": "Enrich payload with customer profile data",
+        "httpRequestMethod": "GET",
+        "httpRequestUrlWithQueryParameter": "https://httpbin.org/json",
+        "internalHttpRequestUrlWithQueryParameter": "https://httpbin.org/json",
+        "httpRequestHeaders": "{\"Content-Type\": \"application/json\"}",
+        "httpRequestBody": "",
+        "trackingNumberSchemaInHttpResponse": "{}"
+      },
+      "uiMap": {
+        "id": "CONSUMER_1",
+        "type": "CONSUMER",
+        "position": {"x": 100, "y": 100},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 2,
+      "description": "Fetch loyalty points — continues silently if service is down",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.customerId =~ /.+?/)]",
+          "remark": "customerId is present"
+        }
+      ],
+      "action": {
+        "type": "CONSUMERWITHOUTERROR",
+        "provider": "MockLoyaltyService",
+        "remark": "Optional enrichment — swallows errors and continues",
+        "httpRequestMethod": "GET",
+        "httpRequestUrlWithQueryParameter": "https://httpbin.org/status/503",
+        "internalHttpRequestUrlWithQueryParameter": "https://httpbin.org/status/503",
+        "httpRequestHeaders": "{\"Content-Type\": \"application/json\"}",
+        "httpRequestBody": "",
+        "trackingNumberSchemaInHttpResponse": "{}"
+      },
+      "uiMap": {
+        "id": "CONSUMERWITHOUTERROR_2",
+        "type": "CONSUMERWITHOUTERROR",
+        "position": {"x": 100, "y": 200},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 3,
+      "description": "PREMIUM segment check — tag notification channels when PREMIUM",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.segment == \"PREMIUM\")]",
+          "remark": "Customer is PREMIUM segment"
+        }
+      ],
+      "action": {
+        "type": "IFELSE",
+        "provider": "SYSTEM",
+        "remark": "When PREMIUM: sets notificationChannels=ALL in payload",
+        "elseLogic": "{\"messageInformation\": {\"notificationChannels\": \"ALL\"}}"
+      },
+      "uiMap": {
+        "id": "IFELSE_3",
+        "type": "IFELSE",
+        "position": {"x": 100, "y": 300},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 4,
+      "description": "Format and mask account number using Functions.formatAccountNumber",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.accountNumber =~ /.+?/)]",
+          "remark": "accountNumber is present"
+        }
+      ],
+      "action": {
+        "type": "FUNCTION_V2",
+        "provider": "Functions",
+        "remark": "Formats 12-digit account as XXX-XXXXXXX-XXX with masking",
+        "elseLogic": "{\"className\":\"com.workflow.common.utils.Functions\",\"methodName\":\"formatAccountNumber\",\"inputParameterList\":[{\"parameterClass\":\"java.lang.String\",\"parameterName\":\"entityCode\",\"parameterValue\":\"WORKFLOW_DEMO_ENTITY\",\"parameterOrder\":1},{\"parameterClass\":\"java.lang.String\",\"parameterName\":\"accountNumber\",\"parameterValue\":\"<<<$.messageInformation.accountNumber>>>\",\"parameterOrder\":2},{\"parameterClass\":\"java.lang.String\",\"parameterName\":\"accountType\",\"parameterValue\":\"LEGACY_NUMERIC_ACCOUNT\",\"parameterOrder\":3},{\"parameterClass\":\"java.lang.String\",\"parameterName\":\"masking\",\"parameterValue\":\"true\",\"parameterOrder\":4}],\"outputParameter\":{\"messageInformation\":{\"formattedAccountNumber\":\"<<<$.reference.reference.formattedAccountNumber>>>\"}}}"
+      },
+      "uiMap": {
+        "id": "FUNCTION_V2_4",
+        "type": "FUNCTION_V2",
+        "position": {"x": 100, "y": 400},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 5,
+      "description": "Mask customer name using Functions.formatName",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.customerName =~ /.+?/)]",
+          "remark": "customerName is present"
+        }
+      ],
+      "action": {
+        "type": "FUNCTION_V3",
+        "provider": "Functions",
+        "remark": "Masks all name parts after the first word",
+        "elseLogic": "{\"className\":\"com.workflow.common.utils.Functions\",\"methodName\":\"formatName\",\"inputParameterList\":[{\"parameterClass\":\"java.lang.String\",\"parameterName\":\"name\",\"parameterValue\":\"<<<$.messageInformation.customerName>>>\",\"parameterOrder\":1}],\"outputParameter\":{\"messageInformation\":{\"maskedName\":\"<<<$.reference.reference.formattedName>>>\"}}}"
+      },
+      "uiMap": {
+        "id": "FUNCTION_V3_5",
+        "type": "FUNCTION_V3",
+        "position": {"x": 100, "y": 500},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 6,
+      "description": "Send SMS payment notification",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.phoneNumber =~ /.+?/)]",
+          "remark": "phoneNumber is present"
+        }
+      ],
+      "action": {
+        "type": "MESSAGE",
+        "provider": "MockSMS",
+        "remark": "Dispatches SMS via mock gateway — creates child WorkflowRecord",
+        "httpRequestMethod": "POST",
+        "httpRequestUrlWithQueryParameter": "https://httpbin.org/post",
+        "internalHttpRequestUrlWithQueryParameter": "https://httpbin.org/post",
+        "httpRequestHeaders": "{\"Content-Type\": \"application/json\"}",
+        "httpRequestBody": "{\"to\": \"<<<$.messageInformation.phoneNumber>>>\", \"message\": \"Payment of $<<<$.messageInformation.amount>>> to <<<$.messageInformation.merchantName>>> processed. Acc: <<<$.messageInformation.formattedAccountNumber>>>\"}",
+        "trackingNumberSchemaInHttpResponse": "{}"
+      },
+      "uiMap": {
+        "id": "MESSAGE_6",
+        "type": "MESSAGE",
+        "position": {"x": 100, "y": 600},
+        "measured": {"width": 320, "height": 92}
+      }
+    },
+    {
+      "id": 7,
+      "description": "Send Email payment confirmation",
+      "ruleList": [
+        {
+          "key": "$.messageInformation[?(@.email =~ /.+?/)]",
+          "remark": "email is present"
+        }
+      ],
+      "action": {
+        "type": "MESSAGE",
+        "provider": "MockEmail",
+        "remark": "Dispatches email via mock gateway — creates child WorkflowRecord",
+        "httpRequestMethod": "POST",
+        "httpRequestUrlWithQueryParameter": "https://httpbin.org/post",
+        "internalHttpRequestUrlWithQueryParameter": "https://httpbin.org/post",
+        "httpRequestHeaders": "{\"Content-Type\": \"application/json\"}",
+        "httpRequestBody": "{\"to\": \"<<<$.messageInformation.email>>>\", \"subject\": \"Payment Confirmation\", \"greeting\": \"Dear <<<$.messageInformation.maskedName>>>\", \"amount\": \"$<<<$.messageInformation.amount>>>\", \"merchant\": \"<<<$.messageInformation.merchantName>>>\"}",
+        "trackingNumberSchemaInHttpResponse": "{}"
+      },
+      "uiMap": {
+        "id": "MESSAGE_7",
+        "type": "MESSAGE",
+        "position": {"x": 100, "y": 700},
+        "measured": {"width": 320, "height": 92}
+      }
+    }
+  ],
+  "uiMapList": [
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "CONSUMER_1", "sourceHandle": "source-handle",
+      "target": "CONSUMERWITHOUTERROR_2", "targetHandle": "target-handle",
+      "id": "xy-edge__CONSUMER_1source-handle-CONSUMERWITHOUTERROR_2target-handle"
+    },
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "CONSUMERWITHOUTERROR_2", "sourceHandle": "source-handle",
+      "target": "IFELSE_3", "targetHandle": "target-handle",
+      "id": "xy-edge__CONSUMERWITHOUTERROR_2source-handle-IFELSE_3target-handle"
+    },
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "IFELSE_3", "sourceHandle": "source-handle",
+      "target": "FUNCTION_V2_4", "targetHandle": "target-handle",
+      "id": "xy-edge__IFELSE_3source-handle-FUNCTION_V2_4target-handle"
+    },
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "FUNCTION_V2_4", "sourceHandle": "source-handle",
+      "target": "FUNCTION_V3_5", "targetHandle": "target-handle",
+      "id": "xy-edge__FUNCTION_V2_4source-handle-FUNCTION_V3_5target-handle"
+    },
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "FUNCTION_V3_5", "sourceHandle": "source-handle",
+      "target": "MESSAGE_6", "targetHandle": "target-handle",
+      "id": "xy-edge__FUNCTION_V3_5source-handle-MESSAGE_6target-handle"
+    },
+    {
+      "animated": true, "markerEnd": {"type": "arrowclosed"}, "type": "buttonEdge",
+      "style": {"strokeWidth": 2}, "zIndex": 1001,
+      "source": "MESSAGE_6", "sourceHandle": "source-handle",
+      "target": "MESSAGE_7", "targetHandle": "target-handle",
+      "id": "xy-edge__MESSAGE_6source-handle-MESSAGE_7target-handle"
+    }
+  ]
+}

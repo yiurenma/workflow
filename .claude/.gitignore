@@ -1,0 +1,5 @@
+# OS
+.DS_Store
+
+# Local overrides that shouldn't be shared
+settings.local.json

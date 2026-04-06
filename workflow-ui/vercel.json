@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/proxy/operation/(.*)",
+      "destination": "https://workflow-operation-api.onrender.com/api/$1"
+    },
+    {
+      "source": "/api/proxy/online/(.*)",
+      "destination": "https://workflow-online-api.onrender.com/api/$1"
+    },
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
