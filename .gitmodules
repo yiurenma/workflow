@@ -1,6 +1,3 @@
-[submodule "workflow-agent-teams"]
-	path = workflow-agent-teams
-	url = https://github.com/yiurenma/workflow-agent-teams.git
 [submodule "workflow-online-api"]
 	path = workflow-online-api
 	url = https://github.com/yiurenma/workflow-online-api.git
