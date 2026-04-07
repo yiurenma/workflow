@@ -73,8 +73,8 @@ Only update status to **Approved** after the human explicitly confirms.
 | Service | URL |
 |---|---|
 | **Frontend (UAT)** | https://workflow-ui-gamma.vercel.app |
-| **operation-api** | https://workflow-operation-api.onrender.com |
-| **online-api** | https://workflow-online-api.onrender.com |
+| **operation-api** | https://workflow-operation-api-n9sbp.ondigitalocean.app |
+| **online-api** | https://workflow-online-api-nr3e4.ondigitalocean.app |
 
 Test Manager verifies backend APIs directly against the URLs above.
 For frontend UI tests, Test Manager produces a step-by-step script and the human executes it in the browser.
