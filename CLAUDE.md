@@ -8,7 +8,8 @@ This file is read by Claude Code at the start of every session. All rules below 
 |---|---|
 | PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
-| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report |
+| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report; may pair with QA on which UI flows become Playwright cases |
+| QA | After implementation: verify against test cases; write `workflow-agent-teams/docs/ui-test-report-vX.Y.md`. **When `workflow-agent-teams/TODO.md` assigns E2E work:** scaffold/maintain **Playwright** in `workflow-ui`, **author** end-to-end specs for key UI function points, **run** `npx playwright test` (or project script), fix or file defects, document how to run and summarize results in `workflow-agent-teams/docs/` |
 | Delivery Manager | Coordinates implementation — only after all three docs are approved |
 | Frontend / Backend devs | Implement only after Test Manager doc is approved by the human |
 
@@ -25,6 +26,8 @@ This file is read by Claude Code at the start of every session. All rules below 
 6. Implement → Frontend / Backend agents write code
 7. QA        → verify against test cases; write test report into
                workflow-agent-teams/docs/ui-test-report-vX.Y.md
+               For backlog items that require it (see TODO.md): add/run Playwright E2E
+               in workflow-ui — create cases first, then run the suite and record outcomes
 8. Commit + push every affected repo:
                a. Commit all code changes on the working branch
                b. Merge the working branch into the target branch
@@ -49,9 +52,26 @@ This file is read by Claude Code at the start of every session. All rules below 
 
 **Step 4 is a hard gate.** Do not proceed to step 5 without the human typing "approve" or equivalent confirmation.
 
-**Step 8 must be fully completed** — do not stop after committing to a feature branch. Always merge to the target branch and push. Do not ask the human to merge; do it as part of the step.
+**Step 8 must be fully completed** — do not stop after committing to a feature branch. Always merge to the target branch and push. Do not ask the human to merge; do it as part of the step. **Every affected submodule** must reach **(a) commit → (b) merge to target branch → (c) push** — skipping any repo or substeps 8a–8c is a process failure.
 
 **Step 9 (UAT) is a hard gate.** Do not mark a TODO as Done until the human confirms UAT is acceptable. If failures are found, do not mark Done — open new TODO items and restart the cycle for each defect.
+
+**Step 10 must not be skipped.** Finishing implementation or push is not completion. If UAT is confirmed PASS, you **must** update `workflow-agent-teams/TODO.md` in the same working session if possible; if the session is ending, explicitly hand off: list what remains (e.g. "TODO still open: mark Done after human UAT confirmation").
+
+## Mandatory end-of-task checklist (before you stop on a TODO item)
+
+Cloud runs often truncate context — **do not end your turn** until you have verified the following for **this** TODO item (say explicitly in your reply which items apply / are N/A):
+
+| # | Check |
+|---|--------|
+| 1 | PM / Arch / Test docs updated as needed; human approval (step 4) obtained before any implementation |
+| 2 | Code changes committed on correct branch **per repo** that was touched |
+| 3 | Each touched repo: merged to **target** branch (`main` or `develop` per Commit & Push Rules) **and** `git push` to origin completed |
+| 4 | `workflow-agent-teams`: docs + `TODO.md` committed and pushed to `main` when anything there changed |
+| 5 | `ui-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` before UAT (when the item involved code) |
+| 6 | UAT script given to human; `uat-report-vX.Y.md` written after human feedback; TODO marked **Done** only after human confirms UAT acceptable |
+
+If you cannot complete a row (e.g. waiting on human UAT), **state that blocker** instead of silently stopping.
 
 ## Document Locations
 
@@ -99,3 +119,4 @@ Backend API calls can be verified by the agent via curl/fetch.
 - Do NOT stop at a feature branch — always merge to the target branch (main / develop) and push as the final step
 - Do NOT skip the QA test report — every TODO item that involves code changes must have a `ui-test-report-vX.Y.md` committed to `workflow-agent-teams/docs/` before UAT begins
 - Do NOT silently absorb UAT failures — every failed UAT case becomes a new TODO item
+- Do NOT end work on a TODO item without either completing the end-of-task checklist above or explicitly listing what is still blocked (human gate, push failure, etc.)
