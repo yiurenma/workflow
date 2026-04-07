@@ -108,6 +108,30 @@ Backend API calls can be verified by the agent via curl/fetch.
 - `workflow-agent-teams`: commit on `main`, push to `origin/main`
 - Never leave commits in detached HEAD state — always checkout the correct branch before committing
 
+## Submodule Management Rules
+
+**CRITICAL:** Always ensure submodules point to their target branches (main or develop), not temporary development branches.
+
+**Before starting any TODO item:**
+1. Run `git submodule status` to check current state
+2. If any submodule points to a non-target branch (e.g., `remotes/origin/cursor/*` or detached HEAD):
+   - Update each affected submodule to its target branch
+   - Commit and push the submodule pointer updates to the main repo
+
+**After completing any TODO item (before final push):**
+1. Verify all submodules still point to their target branches
+2. If work in a submodule created new commits, ensure those commits are on the target branch
+3. Update the main repo's submodule pointers if needed
+
+**Why:** Prevents team members from accidentally checking out stale or abandoned feature branches. Keeps the main repository pointing to stable, authoritative code.
+
+**Target branches:**
+- `workflow-ui` → `main`
+- `workflow-operation-api` → `main`
+- `workflow-online-api` → `develop`
+- `workflow-agent-teams` → `main`
+- `.claude` → `main`
+
 ## What NOT to Do
 
 - Do NOT write code before PM doc + Arch doc + test doc are all approved
