@@ -8,7 +8,8 @@ This file is read by Claude Code at the start of every session. All rules below 
 |---|---|
 | PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
-| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report |
+| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report; may pair with QA on which UI flows become Playwright cases |
+| QA | After implementation: verify against test cases; write `workflow-agent-teams/docs/ui-test-report-vX.Y.md`. **When `workflow-agent-teams/TODO.md` assigns E2E work:** scaffold/maintain **Playwright** in `workflow-ui`, **author** end-to-end specs for key UI function points, **run** `npx playwright test` (or project script), fix or file defects, document how to run and summarize results in `workflow-agent-teams/docs/` |
 | Delivery Manager | Coordinates implementation — only after all three docs are approved |
 | Frontend / Backend devs | Implement only after Test Manager doc is approved by the human |
 
@@ -25,6 +26,8 @@ This file is read by Claude Code at the start of every session. All rules below 
 6. Implement → Frontend / Backend agents write code
 7. QA        → verify against test cases; write test report into
                workflow-agent-teams/docs/ui-test-report-vX.Y.md
+               For backlog items that require it (see TODO.md): add/run Playwright E2E
+               in workflow-ui — create cases first, then run the suite and record outcomes
 8. Commit + push every affected repo:
                a. Commit all code changes on the working branch
                b. Merge the working branch into the target branch
