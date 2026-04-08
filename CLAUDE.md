@@ -6,7 +6,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 
 | Agent | Responsibility |
 |---|---|
-| PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` **and** maintains the bilingual master baseline `workflow-agent-teams/docs/pm-doc-master.md` (see repo root `cloud.md`) |
+| PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-*.md` **and** maintains the bilingual master baseline `workflow-agent-teams/docs/pm-doc-master.md` (rules below) |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
 | Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report; may pair with QA on which UI flows become Playwright cases |
 | QA | After implementation: verify against test cases; write `workflow-agent-teams/docs/ui-test-report-vX.Y.md`. **When `workflow-agent-teams/TODO.md` assigns E2E work:** scaffold/maintain **Playwright** in `workflow-ui`, **author** end-to-end specs for key UI function points, **run** `npx playwright test` (or project script), fix or file defects, document how to run and summarize results in `workflow-agent-teams/docs/` |
@@ -18,7 +18,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 **NEVER jump to implementation directly.** For every task from `workflow-agent-teams/TODO.md`, follow this sequence in order:
 
 ```
-1. PM        → write/update PM doc (user story + acceptance criteria) **and** update `workflow-agent-teams/docs/pm-doc-master.md`: bump **Document version**, align EN+ZH sections with the TODO, add a **Revision history** row (TODO label + US/AC IDs). Filename `pm-doc-master.md` is fixed — only version and content change. See `cloud.md`.
+1. PM        → write/update PM doc (user story + acceptance criteria) **and** update `workflow-agent-teams/docs/pm-doc-master.md`: bump **Document version**, align EN+ZH sections with the TODO, add a **Revision history** row (TODO label + US/AC IDs). Filename `pm-doc-master.md` is fixed — only version and content change. See **PM master baseline** below.
 2. Architect → write/update Arch doc (approach, data flow, security, trade-offs)
 3. Test Mgr  → write test cases based on PM doc + Arch doc
 4. STOP      → present all three docs to the human and wait for explicit approval
@@ -76,12 +76,33 @@ If you cannot complete a row (e.g. waiting on human UAT), **state that blocker**
 ## Document Locations
 
 - PM docs: `workflow-agent-teams/docs/pm-doc-*.md`
-- PM master (single baseline, bilingual EN+ZH, fixed filename): `workflow-agent-teams/docs/pm-doc-master.md` — **must** be updated for every `TODO.md` item per `cloud.md`
+- PM master (single baseline, bilingual EN+ZH, fixed filename): `workflow-agent-teams/docs/pm-doc-master.md` — **must** be updated for every `TODO.md` item (see **PM master baseline** below)
 - Arch docs: `workflow-agent-teams/docs/arch-doc-*.md`
 - Test docs: `workflow-agent-teams/docs/test-doc-*.md`
 - QA test reports: `workflow-agent-teams/docs/ui-test-report-vX.Y.md`
 - UAT reports: `workflow-agent-teams/docs/uat-report-vX.Y.md`
 - TODO backlog: `workflow-agent-teams/TODO.md`
+
+## PM master baseline (`pm-doc-master.md`)
+
+**Canonical path:** `workflow-agent-teams/docs/pm-doc-master.md` — **filename is fixed**; only **Document version** and body change.
+
+For **every** item from `workflow-agent-teams/TODO.md` (feature, bug fix, post-mortem, doc-only, or infra that affects product-visible behavior):
+
+1. **PM updates** `pm-doc-master.md` in the **same change set** as the PM slice doc for that item (or as the only PM update if folded into the master).
+2. **Bump Document version** in the file (e.g. `2.5` → `2.6`).
+3. **Reflect the TODO** in the master: add or adjust user stories / acceptance criteria; map to **APP** (application management), **REC** (execution records / online semantics), **CV** (canvas).
+4. **Revision history:** append a row — version, date, TODO label or title, **US/AC** IDs touched.
+
+**Bilingual rule:** the master **must** include full **English** and full **中文** sections with equivalent requirements; **same** document version for both; updating only one language is incomplete.
+
+**PM ownership:** maintaining `pm-doc-master.md` is a standing deliverable, same priority as `pm-doc-vX.Y.md` when the process still requires a versioned slice for Architect / Test.
+
+### 中文摘要
+
+- **固定文件名** `pm-doc-master.md`，只升版、改正文。  
+- **每个** `TODO.md` 条目须同步更新主文档：**递增版本**、按待办调整 **US/AC（APP/REC/CV）**、**修订记录** 写明 TODO 与涉及编号。  
+- **英文与中文**须同时更新、版本一致。
 
 ## Document Status Lifecycle
 
