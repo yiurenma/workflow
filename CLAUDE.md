@@ -108,6 +108,35 @@ Backend API calls can be verified by the agent via curl/fetch.
 - `workflow-agent-teams`: commit on `main`, push to `origin/main`
 - Never leave commits in detached HEAD state — always checkout the correct branch before committing
 
+## Session Start / End Protocol
+
+**Every session must follow this protocol without exception.**
+
+### Session Start — pull latest from main before any work
+
+```
+git -C /home/user/workflow-ui            checkout main    && git -C /home/user/workflow-ui            pull origin main
+git -C /home/user/workflow-agent-teams   checkout main    && git -C /home/user/workflow-agent-teams   pull origin main
+git -C /home/user/workflow-operation-api checkout main    && git -C /home/user/workflow-operation-api pull origin main
+git -C /home/user/workflow-online-api    checkout develop && git -C /home/user/workflow-online-api    pull origin develop
+```
+
+Do this **before reading any source files or making any changes**. If a pull fails, report the conflict to the human before proceeding.
+
+### Session End — push all changes to the target branch
+
+After every coding session (after step 8 in the Mandatory Process), verify all affected repos have been pushed:
+
+```
+# Confirm each repo is clean and pushed
+git -C /home/user/workflow-ui            status
+git -C /home/user/workflow-agent-teams   status
+git -C /home/user/workflow-operation-api status
+git -C /home/user/workflow-online-api    status
+```
+
+No uncommitted or un-pushed changes should remain when a session ends. If changes exist, commit and push them to the target branch before finishing.
+
 ## Submodule Management Rules
 
 **CRITICAL:** Always ensure submodules point to their target branches (main or develop), not temporary development branches.
