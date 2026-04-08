@@ -18,7 +18,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 **NEVER jump to implementation directly.** For every task from `workflow-agent-teams/TODO.md`, follow this sequence in order:
 
 ```
-1. PM        → write/update `pm-doc-v*.md` (user story + acceptance criteria) **and** update `workflow-agent-teams/docs/pm-doc-master.md`: bump **Document version**, keep **Part 1** and **Part 2** in that file aligned with the TODO and with each other, add a **Revision history** row (TODO label + US/AC IDs). Filename `pm-doc-master.md` is fixed — only version and content change. See **PM master baseline** below.
+1. PM        → write/update `pm-doc-v*.md` (user story + acceptance criteria) **and** update `workflow-agent-teams/docs/pm-doc-master.md`: bump **Document version**, align the **Chinese** product baseline with the TODO, add a **Revision history** row (TODO label + US/AC IDs). Filename `pm-doc-master.md` is fixed — only version and content change. **Do not** put HTTP paths, methods, or error codes in the master — those belong in **Arch** docs. See **PM master baseline** below.
 2. Architect → write/update Arch doc (approach, data flow, security, trade-offs)
 3. Test Mgr  → write test cases based on PM doc + Arch doc
 4. STOP      → present all three docs to the human and wait for explicit approval
@@ -76,7 +76,7 @@ If you cannot complete a row (e.g. waiting on human UAT), **state that blocker**
 ## Document Locations
 
 - PM versioned slices: `workflow-agent-teams/docs/pm-doc-v*.md` (exclude `pm-doc-master.md`) — single body, same style as this file
-- PM master (fixed filename): `workflow-agent-teams/docs/pm-doc-master.md` — **Part 1** + **Part 2** (two full equivalent copies); **must** be updated for every `TODO.md` item (see **PM master baseline** below)
+- PM master (fixed filename): `workflow-agent-teams/docs/pm-doc-master.md` — **Chinese-only** product baseline, **no API/contract detail** (APIs live in `arch-doc-*.md`); **must** be updated for every `TODO.md` item (see **PM master baseline** below)
 - Arch docs: `workflow-agent-teams/docs/arch-doc-*.md`
 - Test docs: `workflow-agent-teams/docs/test-doc-*.md`
 - QA test reports: `workflow-agent-teams/docs/ui-test-report-vX.Y.md`
@@ -94,10 +94,11 @@ For **every** item from `workflow-agent-teams/TODO.md` (feature, bug fix, post-m
 3. **Reflect the TODO** in the master: add or adjust user stories / acceptance criteria; map to **APP** (application management), **REC** (execution records / online semantics), **CV** (canvas).
 4. **Revision history:** append a row — version, date, TODO label or title, **US/AC** IDs touched.
 
-**PM master structure**
+**PM master content**
 
-- **`pm-doc-master.md`:** contains **Part 1** and **Part 2** — two full copies of the same baseline. Requirements in each part must stay equivalent; **same** Document version applies to both; updating only one part is incomplete.
-- **All other docs** in this workflow (`pm-doc-v*.md`, `arch-doc-*.md`, `test-doc-*.md`, test/UAT reports under `workflow-agent-teams/docs/`): **one** body per file, written in the **same style as this file** (no second parallel copy inside those files).
+- **`pm-doc-master.md`:** **Chinese only** — user-visible capabilities, stories, and acceptance criteria. **Exclude** interface specifications (URLs, verbs, status/error codes, OpenAPI). Put those in **`arch-doc-*.md`**. One continuous document (no duplicate Part 1/Part 2).
+- **`pm-doc-v*.md`:** **one** body per file, **same language/style as this file** (English).
+- **Arch / test / reports** under `workflow-agent-teams/docs/`: **one** body per file, same style as this file unless a doc type explicitly requires otherwise.
 
 **PM ownership:** maintaining `pm-doc-master.md` is a standing deliverable, same priority as `pm-doc-vX.Y.md` when the process still requires a versioned slice for Architect / Test.
 
