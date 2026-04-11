@@ -164,13 +164,24 @@ git submodule status
 - Feature branches (e.g., `remotes/origin/cursor/*`)
 - Old commits
 
-If ANY submodule points to wrong branch/commit:
-1. Update submodule to target branch: `git -C <submodule_path> checkout <target_branch> && git -C <submodule_path> pull`
-2. Stage pointer update: `git add <submodule_path>`
-3. Commit: `git commit -m "Update <submodule> pointer to target branch"`
-4. Push: `git push origin master`
+**If ANY submodule points to wrong branch/commit:**
 
-**Do NOT proceed with any work until all submodule pointers are correct.**
+1. **STOP immediately and report to user:**
+   - List which submodules have incorrect pointers
+   - Show current state vs. expected state
+   - Example: "⚠️ Submodule pointer check FAILED: `.claude` is at detached HEAD `44a6bf0`, expected `main` branch"
+
+2. **Ask user for confirmation before fixing:**
+   - "Should I update these submodule pointers to their target branches and commit the changes?"
+   - Wait for explicit user approval
+
+3. **Only after user approves, execute fix:**
+   - Update submodule to target branch: `git -C <submodule_path> checkout <target_branch> && git -C <submodule_path> pull`
+   - Stage pointer update: `git add <submodule_path>`
+   - Commit: `git commit -m "Update <submodule> pointer to target branch"`
+   - Push: `git push origin master`
+
+**Do NOT proceed with any work until all submodule pointers are correct and user has been informed.**
 
 ### Session End — verify submodule pointers and push all changes
 
@@ -199,12 +210,25 @@ git status
 1. All submodules MUST point to their target branches (main or develop)
 2. Main repo MUST have NO uncommitted submodule pointer changes
 
-If submodules have new commits but main repo hasn't updated pointers:
-1. Stage pointer updates: `git add <submodule_path>`
-2. Commit: `git commit -m "Update submodule pointers after [work description]"`
-3. Push: `git push origin master`
+**If submodules have new commits but main repo hasn't updated pointers:**
+
+1. **STOP immediately and report to user:**
+   - List which submodules have new commits
+   - Show that main repo pointer is stale
+   - Example: "⚠️ Submodule pointer check FAILED: `workflow-ui` has new commits but main repo still points to old SHA `528c01f`"
+
+2. **Ask user for confirmation before fixing:**
+   - "Should I update the main repo's submodule pointers to reflect these new commits and push the changes?"
+   - Wait for explicit user approval
+
+3. **Only after user approves, execute fix:**
+   - Stage pointer updates: `git add <submodule_path>`
+   - Commit: `git commit -m "Update submodule pointers after [work description]"`
+   - Push: `git push origin master`
 
 **Why this matters:** If main repo points to old submodule commits, other developers will check out stale code. Always keep pointers synchronized with target branches.
+
+**Do NOT end the session until all submodule pointers are correct and user has been informed.**
 
 ## Submodule Management Rules
 
