@@ -140,7 +140,9 @@ Backend API calls can be verified by the agent via curl/fetch.
 
 **Every session must follow this protocol without exception.**
 
-### Session Start — pull latest from main before any work
+### Session Start — pull latest and verify submodule pointers
+
+**Step 1: Pull all submodules to target branches**
 
 ```
 git -C /home/user/workflow-ui            checkout main    && git -C /home/user/workflow-ui            pull origin main
@@ -151,9 +153,30 @@ git -C /home/user/workflow-online-api    checkout develop && git -C /home/user/w
 
 Do this **before reading any source files or making any changes**. If a pull fails, report the conflict to the human before proceeding.
 
-### Session End — push all changes to the target branch
+**Step 2: CRITICAL — Verify submodule pointers in root repo point to target branches**
 
-After every coding session (after step 8 in the Mandatory Process), verify all affected repos have been pushed:
+```
+git submodule status
+```
+
+**MANDATORY CHECK:** Each submodule MUST show its target branch (main or develop), NOT:
+- Detached HEAD
+- Feature branches (e.g., `remotes/origin/cursor/*`)
+- Old commits
+
+If ANY submodule points to wrong branch/commit:
+1. Update submodule to target branch: `git -C <submodule_path> checkout <target_branch> && git -C <submodule_path> pull`
+2. Stage pointer update: `git add <submodule_path>`
+3. Commit: `git commit -m "Update <submodule> pointer to target branch"`
+4. Push: `git push origin master`
+
+**Do NOT proceed with any work until all submodule pointers are correct.**
+
+### Session End — verify submodule pointers and push all changes
+
+After every coding session (after step 8 in the Mandatory Process):
+
+**Step 1: Verify all repos are clean and pushed**
 
 ```
 # Confirm each repo is clean and pushed
@@ -164,6 +187,24 @@ git -C /home/user/workflow-online-api    status
 ```
 
 No uncommitted or un-pushed changes should remain when a session ends. If changes exist, commit and push them to the target branch before finishing.
+
+**Step 2: CRITICAL — Final verification of submodule pointers**
+
+```
+git submodule status
+git status
+```
+
+**MANDATORY CHECK:** 
+1. All submodules MUST point to their target branches (main or develop)
+2. Main repo MUST have NO uncommitted submodule pointer changes
+
+If submodules have new commits but main repo hasn't updated pointers:
+1. Stage pointer updates: `git add <submodule_path>`
+2. Commit: `git commit -m "Update submodule pointers after [work description]"`
+3. Push: `git push origin master`
+
+**Why this matters:** If main repo points to old submodule commits, other developers will check out stale code. Always keep pointers synchronized with target branches.
 
 ## Submodule Management Rules
 
