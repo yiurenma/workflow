@@ -8,8 +8,9 @@ This file is read by Claude Code at the start of every session. All rules below 
 |---|---|
 | PM | Writes user stories + acceptance criteria into `workflow-agent-teams/docs/pm-doc-v*.md` (versioned slices), **and** maintains the master baseline `workflow-agent-teams/docs/pm-doc-master.md` (rules below) |
 | Architect | Reviews technical approach, writes architecture notes into `workflow-agent-teams/docs/arch-doc-*.md` |
-| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; prepares UAT test script after merge; guides human through UAT steps; collects human's results and writes UAT report; may pair with QA on which UI flows become Playwright cases |
-| QA | After implementation: verify against test cases; write `workflow-agent-teams/docs/ui-test-report-vX.Y.md`. **When `workflow-agent-teams/TODO.md` assigns E2E work:** scaffold/maintain **Playwright** in `workflow-ui`, **author** end-to-end specs for key UI function points, **run** `npx playwright test` (or project script), fix or file defects, document how to run and summarize results in `workflow-agent-teams/docs/` |
+| Test Manager | Writes test cases into `workflow-agent-teams/docs/test-doc-*.md` based on PM + Arch docs; coordinates QA and E2E Tester; prepares UAT test script after E2E passes; guides human through UAT steps; collects human's results and writes UAT report |
+| QA | After implementation: verify against test cases; write `workflow-agent-teams/docs/ui-test-report-vX.Y.md` |
+| E2E Tester | Managed by Test Manager. After QA completes and before UAT: runs Playwright E2E tests against UAT environment (workflow-ui-gamma.vercel.app), performs 5-layer UX validation (exist/size/viewport/interact/effect), writes `workflow-agent-teams/docs/e2e-test-report-vX.Y.md`. Uses headed browser mode for visual verification. Reports failures back to Test Manager who decides whether to block UAT or file new TODOs |
 | Delivery Manager | Coordinates implementation — only after all three docs are approved |
 | Frontend / Backend devs | Implement only after Test Manager doc is approved by the human |
 
@@ -24,10 +25,15 @@ This file is read by Claude Code at the start of every session. All rules below 
 4. STOP      → present all three docs to the human and wait for explicit approval
 5. Only after approval: Delivery Manager dispatches implementation
 6. Implement → Frontend / Backend agents write code
-7. QA        → verify against test cases; write test report into
-               workflow-agent-teams/docs/ui-test-report-vX.Y.md
-               For backlog items that require it (see TODO.md): add/run Playwright E2E
-               in workflow-ui — create cases first, then run the suite and record outcomes
+7. QA + E2E  → 
+   a. QA: verify against test cases; write ui-test-report-vX.Y.md
+   b. E2E Tester (managed by Test Manager): run Playwright E2E suite 
+      against UAT environment; write e2e-test-report-vX.Y.md
+      - Sync: git pull all repos + submodule update --remote
+      - Run: headed mode on workflow-ui-gamma.vercel.app
+      - Validate: 5-layer UX framework (exist/size/viewport/interact/effect)
+      - Report: pass/fail counts, screenshots, accessibility violations
+      - On failure: Test Manager reviews and decides next action
 8. Commit + push every affected repo:
                a. Commit all code changes on the working branch
                b. Merge the working branch into the target branch
@@ -68,7 +74,8 @@ Cloud runs often truncate context — **do not end your turn** until you have ve
 | 2 | Code changes committed on correct branch **per repo** that was touched |
 | 3 | Each touched repo: merged to **target** branch (`main` or `develop` per Commit & Push Rules) **and** `git push` to origin completed |
 | 4 | `workflow-agent-teams`: docs + `TODO.md` committed and pushed to `main` when anything there changed |
-| 5 | `ui-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` before UAT (when the item involved code) |
+| 5 | `ui-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` before E2E (when the item involved code) |
+| 5.5 | `e2e-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` after E2E Tester completes Playwright run against UAT |
 | 6 | UAT script given to human; `uat-report-vX.Y.md` written after human feedback; TODO marked **Done** only after human confirms UAT acceptable |
 
 If you cannot complete a row (e.g. waiting on human UAT), **state that blocker** instead of silently stopping.
@@ -80,6 +87,7 @@ If you cannot complete a row (e.g. waiting on human UAT), **state that blocker**
 - Arch docs: `workflow-agent-teams/docs/arch-doc-*.md`
 - Test docs: `workflow-agent-teams/docs/test-doc-*.md`
 - QA test reports: `workflow-agent-teams/docs/ui-test-report-vX.Y.md`
+- E2E test reports: `workflow-agent-teams/docs/e2e-test-report-vX.Y.md`
 - UAT reports: `workflow-agent-teams/docs/uat-report-vX.Y.md`
 - TODO backlog: `workflow-agent-teams/TODO.md`
 
