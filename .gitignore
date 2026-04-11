@@ -2,3 +2,21 @@
 *.swp
 *.swo
 *~
+
+# Playwright / browser automation
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Temporary design/refactor artifacts
+*.png
+*.jpg
+*.jpeg
+DESIGN.md
+REFACTOR_SUMMARY.md
+STYLE_REFACTOR_LOG.md
+uat-snapshot.md
+
+# Plugin / agent runtime files
+.agents/
+skills-lock.json
