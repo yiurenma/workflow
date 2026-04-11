@@ -18,5 +18,4 @@ STYLE_REFACTOR_LOG.md
 uat-snapshot.md
 
 # Plugin / agent runtime files
-.agents/
 skills-lock.json
