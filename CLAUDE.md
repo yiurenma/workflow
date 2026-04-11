@@ -40,18 +40,28 @@ This file is read by Claude Code at the start of every session. All rules below 
                   (see Commit & Push Rules below for each repo's target branch)
                c. Push the target branch to origin
                d. Do the same for workflow-agent-teams (docs + TODO.md)
-9. UAT       → Agent capability boundary: agents cannot render browser UI or
-               interact with the live site. UAT works as follows:
-               a. Test Manager verifies backend APIs directly where possible
-                  (curl / fetch against UAT environment URLs)
-               b. Test Manager produces a step-by-step UAT script for the human,
-                  listing exactly what to click, what to enter, and what to observe
-                  on https://workflow-ui-gamma.vercel.app
-               c. Human executes the script in the browser and reports results
-               d. Test Manager writes uat-report-vX.Y.md based on human's feedback:
+9. UAT       → E2E Tester runs Playwright against UAT environment and is the
+               sole verifier. UAT works as follows:
+               a. E2E Tester navigates to https://workflow-ui-gamma.vercel.app
+                  using headed Playwright browser (Desktop Chrome 1280px +
+                  Mobile Chrome 390×844)
+               b. E2E Tester executes all test cases from the test-doc using
+                  the 5-layer UX validation framework:
+                  - Layer 1 (Exist): elements are present in DOM
+                  - Layer 2 (Size): dimensions meet spec (e.g. height > 35% viewport)
+                  - Layer 3 (Viewport): content is not clipped outside viewport
+                  - Layer 4 (Interact): clicks, inputs, and navigation work
+                  - Layer 5 (Effect): computed styles / API responses match spec
+               c. E2E Tester writes uat-report-vX.Y.md with pass/fail per case,
+                  computed style values, screenshots, and overall verdict
+               d. Test Manager reviews the report:
                   - All cases PASS → proceed to step 10
                   - Any FAIL → document each failure, open a new TODO item in
                     workflow-agent-teams/TODO.md, full cycle restarts for that item
+               NOTE: Human confirmation is NOT required for UAT. The E2E Tester's
+               Playwright run is the authoritative UAT gate. The human may still
+               review the uat-report-vX.Y.md but their approval is not needed
+               to proceed to step 10.
 10. Mark TODO item as Done in workflow-agent-teams/TODO.md
     (only after the human confirms UAT is acceptable)
 ```
@@ -60,9 +70,9 @@ This file is read by Claude Code at the start of every session. All rules below 
 
 **Step 8 must be fully completed** — do not stop after committing to a feature branch. Always merge to the target branch and push. Do not ask the human to merge; do it as part of the step. **Every affected submodule** must reach **(a) commit → (b) merge to target branch → (c) push** — skipping any repo or substeps 8a–8c is a process failure.
 
-**Step 9 (UAT) is a hard gate.** Do not mark a TODO as Done until the human confirms UAT is acceptable. If failures are found, do not mark Done — open new TODO items and restart the cycle for each defect.
+**Step 9 (UAT) is a hard gate.** Do not mark a TODO as Done until E2E Tester's Playwright UAT run reports PASS. If failures are found, do not mark Done — open new TODO items and restart the cycle for each defect.
 
-**Step 10 must not be skipped.** Finishing implementation or push is not completion. If UAT is confirmed PASS, you **must** update `workflow-agent-teams/TODO.md` in the same working session if possible; if the session is ending, explicitly hand off: list what remains (e.g. "TODO still open: mark Done after human UAT confirmation").
+**Step 10 must not be skipped.** Finishing implementation or push is not completion. If E2E Tester's UAT run is PASS, you **must** update `workflow-agent-teams/TODO.md` in the same working session if possible; if the session is ending, explicitly hand off: list what remains.
 
 ## Mandatory end-of-task checklist (before you stop on a TODO item)
 
@@ -76,7 +86,7 @@ Cloud runs often truncate context — **do not end your turn** until you have ve
 | 4 | `workflow-agent-teams`: docs + `TODO.md` committed and pushed to `main` when anything there changed |
 | 5 | `ui-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` before E2E (when the item involved code) |
 | 5.5 | `e2e-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` after E2E Tester completes Playwright run against UAT |
-| 6 | UAT script given to human; `uat-report-vX.Y.md` written after human feedback; TODO marked **Done** only after human confirms UAT acceptable |
+| 6 | E2E Tester runs Playwright UAT against https://workflow-ui-gamma.vercel.app; `uat-report-vX.Y.md` written with PASS verdict; TODO marked **Done** only after E2E Tester confirms UAT PASS |
 
 If you cannot complete a row (e.g. waiting on human UAT), **state that blocker** instead of silently stopping.
 
@@ -124,9 +134,8 @@ Only update status to **Approved** after the human explicitly confirms.
 | **operation-api** | https://workflow-operation-api-n9sbp.ondigitalocean.app |
 | **online-api** | https://workflow-online-api-nr3e4.ondigitalocean.app |
 
-Test Manager verifies backend APIs directly against the URLs above.
-For frontend UI tests, Test Manager produces a step-by-step script and the human executes it in the browser.
-Backend API calls can be verified by the agent via curl/fetch.
+E2E Tester runs Playwright (headed Desktop Chrome 1280px + Mobile Chrome 390×844) directly against the UAT frontend URL.
+Backend API calls can be verified by any agent via curl/fetch against the operation-api and online-api URLs above.
 
 ## Commit & Push Rules
 
@@ -258,9 +267,9 @@ git status
 
 - Do NOT write code before PM doc + Arch doc + test doc are all approved
 - Do NOT mark a TODO item as Done before code is pushed **and merged to the target branch**
-- Do NOT mark a TODO item as Done before UAT is confirmed PASS by the human
+- Do NOT mark a TODO item as Done before E2E Tester's Playwright UAT run reports PASS
 - Do NOT skip the human approval gate (step 4) for any reason
-- Do NOT skip the UAT gate (step 9) — Test Manager must report UAT results to human before Done
+- Do NOT skip the UAT gate (step 9) — E2E Tester must run Playwright UAT and report PASS before Done
 - Do NOT commit to wrong branches
 - Do NOT stop at a feature branch — always merge to the target branch (main / develop) and push as the final step
 - Do NOT skip the QA test report — every TODO item that involves code changes must have a `ui-test-report-vX.Y.md` committed to `workflow-agent-teams/docs/` before UAT begins
