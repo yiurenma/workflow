@@ -6,7 +6,16 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UI="${ROOT}/workflow-ui"
-SHOTS="${UI}/e2e/uat-v27-screenshots"
+FRESH="${UI}/e2e/uat-demo-media"
+LEGACY="${UI}/e2e/uat-v27-screenshots"
+# Prefer freshly captured gamma UAT frames when present (see scripts/capture-uat-demo-media.sh)
+if [[ -f "${FRESH}/01-workflows.png" ]]; then
+  SHOTS="$FRESH"
+  echo "==> Using fresh UAT captures: $SHOTS"
+else
+  SHOTS="$LEGACY"
+  echo "==> Using bundled screenshots: $SHOTS (run ./scripts/capture-uat-demo-media.sh for live gamma)"
+fi
 LOGO="${UI}/src/assets/logo.png"
 OUT_DIR="${ROOT}/artifacts"
 OUT="${OUT_DIR}/workflow-studio-product-demo.mp4"
@@ -34,7 +43,7 @@ while [[ "${1:-}" == -* ]]; do
 done
 
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found"; exit 1; }
-[[ -d "$SHOTS" ]] || { echo "Missing screenshot dir: $SHOTS (run: git submodule update --init)"; exit 1; }
+[[ -d "$SHOTS" ]] || { echo "Missing screenshot dir: $SHOTS (git submodule update --init, or run capture script)"; exit 1; }
 [[ -f "$LOGO" ]] || { echo "Missing logo: $LOGO"; exit 1; }
 
 mkdir -p "$OUT_DIR" "$TMP"
@@ -107,14 +116,34 @@ declare -a PARTS=()
 i=0
 
 PARTS+=("$(segment_logo 3.2 "Workflow Studio" "低代码 API 编排 · 可视化流水线" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step1-header.png" 3.5 "从想法到流水线" "企业级导航与一致体验" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step2-app-list.png" 4 "多应用，一套编排" "应用列表 · 快速定位与治理" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step4-table.png" 3.5 "数据面一览" "表格视图 · 请求与上下文" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step5b-canvas.png" 5 "画布即真理" "React Flow · 拖拽节点与连线" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step5-final.png" 5 "复杂流程，一眼可控" "Enrichment → Dispatch 全链路" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step5c-settings-modal.png" 3.5 "规则与步骤" "JsonPath 规则 · 步骤配置" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step3-status-tags.png" 3.5 "状态清晰可见" "发布 / 草稿 · 运维友好" "$i")"); i=$((i+1))
-PARTS+=("$(segment_image "$SHOTS/step5-final.png" 4 "Workflow Studio" "可视化编排 · 安全执行 · 可观测" "$i")"); i=$((i+1))
+
+if [[ "$SHOTS" == "$FRESH" ]]; then
+  PARTS+=("$(segment_image "$SHOTS/01b-workflows-viewport.png" 3.5 "实时 UAT 界面" "Gamma 环境 · 当前线上视觉" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/01-workflows.png" 4 "应用与工作流" "列表 · 状态 · 一键进入画布" "$i")"); i=$((i+1))
+  if [[ -f "$SHOTS/02-new-application-dialog.png" ]]; then
+    PARTS+=("$(segment_image "$SHOTS/02-new-application-dialog.png" 3 "快速创建" "新建应用 · 即刻编排" "$i")"); i=$((i+1))
+  fi
+  if [[ -f "$SHOTS/03-canvas.png" ]]; then
+    PARTS+=("$(segment_image "$SHOTS/03-canvas.png" 5.5 "画布编排" "React Flow · 节点与连线" "$i")"); i=$((i+1))
+  fi
+  if [[ -f "$SHOTS/03b-canvas-full.png" ]]; then
+    PARTS+=("$(segment_image "$SHOTS/03b-canvas-full.png" 4.5 "全链路视图" "Enrichment → Dispatch 一目了然" "$i")"); i=$((i+1))
+  fi
+  PARTS+=("$(segment_image "$SHOTS/04-workflows-return.png" 3.5 "治理与运维" "返回列表 · 版本与设置入口" "$i")"); i=$((i+1))
+  if [[ -f "$SHOTS/05-settings-modal.png" ]]; then
+    PARTS+=("$(segment_image "$SHOTS/05-settings-modal.png" 3.5 "配置与规则" "应用设置 · JsonPath 规则" "$i")"); i=$((i+1))
+  fi
+  PARTS+=("$(segment_image "$SHOTS/01-workflows.png" 3.5 "Workflow Studio" "可视化编排 · 安全执行 · 可观测" "$i")"); i=$((i+1))
+else
+  PARTS+=("$(segment_image "$SHOTS/step1-header.png" 3.5 "从想法到流水线" "企业级导航与一致体验" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step2-app-list.png" 4 "多应用，一套编排" "应用列表 · 快速定位与治理" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step4-table.png" 3.5 "数据面一览" "表格视图 · 请求与上下文" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step5b-canvas.png" 5 "画布即真理" "React Flow · 拖拽节点与连线" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step5-final.png" 5 "复杂流程，一眼可控" "Enrichment → Dispatch 全链路" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step5c-settings-modal.png" 3.5 "规则与步骤" "JsonPath 规则 · 步骤配置" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step3-status-tags.png" 3.5 "状态清晰可见" "发布 / 草稿 · 运维友好" "$i")"); i=$((i+1))
+  PARTS+=("$(segment_image "$SHOTS/step5-final.png" 4 "Workflow Studio" "可视化编排 · 安全执行 · 可观测" "$i")"); i=$((i+1))
+fi
 
 CONCAT="$TMP/list.txt"
 : >"$CONCAT"

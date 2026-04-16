@@ -141,7 +141,14 @@ npm run dev
 
 ### 产品演示视频（FFmpeg）
 
-使用仓库内 UAT 截图与 Logo 一键生成 **1920×1080** 演示片（输出在 `artifacts/`，已忽略版本控制）：
+使用仓库内 UAT 截图与 Logo 一键生成 **1920×1080** 演示片（输出在 `artifacts/`，已忽略版本控制）。  
+**建议先从线上 gamma 现抓画面**（避免使用仓库里过期的静态截图）：
+
+```bash
+./scripts/capture-and-build-demo.sh
+```
+
+仅重新编码（不访问 UAT）：
 
 ```bash
 ./scripts/generate-product-demo-video.sh
