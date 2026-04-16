@@ -139,6 +139,16 @@ npm run dev
 - Operation API Swagger UI: http://localhost:8081/swagger-ui.html
 - Online API Swagger UI: http://localhost:8080/swagger-ui.html
 
+### 产品演示视频（FFmpeg）
+
+使用仓库内 UAT 截图与 Logo 一键生成 **1920×1080** 演示片（输出在 `artifacts/`，已忽略版本控制）：
+
+```bash
+./scripts/generate-product-demo-video.sh
+```
+
+说明与分镜、画质参数见 [docs/product-demo-video.md](./docs/product-demo-video.md)。
+
 ## 项目结构
 
 ```

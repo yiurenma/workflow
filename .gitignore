@@ -19,3 +19,6 @@ uat-snapshot.md
 
 # Plugin / agent runtime files
 skills-lock.json
+
+# Generated demo video output (see scripts/generate-product-demo-video.sh)
+/artifacts/
