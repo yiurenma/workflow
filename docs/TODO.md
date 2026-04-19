@@ -88,3 +88,27 @@ After the import fix lands, the **test application** (the app used for automated
 
 - Likely maps to **APP** / **CV** depending on where import lives; Arch should cite the exact schema fields and endpoint(s), not PM master.  
 - Test cases should assert **no drift** between saved `action.type` values and import validation after this change.
+
+---
+
+## UI — Consistent control heights; visible button labels (destructive / primary)
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** Across **workflow-ui**, form **inputs** and **buttons** do not share a consistent height, which makes layouts look uneven and unpolished. Separately, **button label text is sometimes invisible** (reported on the red **Delete** control in the application form: the button is red but the word “Delete” does not appear). The same class of issue may affect **blue** (primary) buttons and others—if foreground text color matches or is too close to the background, users cannot tell what the control does.
+
+### Problems to track
+
+1. **Height alignment:** Standardize vertical sizing (and related padding / line-height) so inputs, selects, and buttons align on the same baseline grid app-wide (or per design system tokens), not only in isolated screens.  
+2. **Label visibility audit:** Review **all** button variants (destructive/red, primary/blue, secondary, ghost, disabled) for **real rendered text** and **contrast** in default, hover, focus, and disabled states; fix incorrect `color` / inherited styles / `opacity` / icon-only assumptions so labels always read clearly.
+
+### Investigation hints for implementers
+
+- Likely causes of “missing” label: CSS `color` same as fill, global link/button reset, `text-transparent`, low opacity layer, overflow clipping, or theme token mismatch on destructive variant. Confirm in devtools (computed `color`, `visibility`, `font-size`, `line-height`, parent `overflow`).
+
+### Notes for PM / Arch / Test
+
+- Maps primarily to **APP** (forms, application management) and general **CV** / shared components if buttons are reused globally.  
+- Test: visual regression on representative forms (application form, modals, toolbar); accessibility contrast checks for button text on each variant.
+
+**Recorded:** 2026-04-19 (user report — no code change in this task).
