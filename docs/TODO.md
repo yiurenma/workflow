@@ -158,3 +158,34 @@ After the import fix lands, the **test application** (the app used for automated
 - Arch: document the intended graph invariant after relaxation (what is still validated vs skipped).
 
 **Recorded:** 2026-04-19 (user report + UAT validation screenshot — no code change in this task).
+
+---
+
+## Deploy — Rewrite `deploy` around application name + online API workflow (JSON / AI Generate)
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** **Rewrite** the **`deploy`** function so the **online API** is invoked **automatically when the user clicks Deploy** (no separate manual “call API” step beyond that click/confirm path). The **required query parameter** is the **Deploy Application Name** (the target name under which deployment runs). The full deployment path is **driven as a workflow** (not only ad-hoc sequential client calls). The workflow’s steps should **subsume or orchestrate** the **existing deployment steps** already used today (see the **Hub — Deploy action** item above: **CreateApplicationName** → **UpdateApplicationName** → **SaveWorkflow**, and any related proxy/CORS work in **Deploy — Step 1 fails…**). Implementers must **inventory current deploy code paths** and map each into explicit **workflow steps** so behavior stays equivalent or intentionally evolved per PM/Arch.
+
+**Request body (two blocks — both required):** The online API cannot execute the workflow without **both** of the following in the request payload:
+
+1. **Application name block:** **All information** associated with the **original** Application Name (the app the user is deploying **from**). When the user clicks **Deploy**, the UI should surface/show this full application payload (same intent as “everything we have for the current app”) so it is clear what is being sent and so the server has complete app context.  
+2. **Workflow block:** **All workflow information** (definitions / graph / plugins / mappings needed to run the deployment workflow on the target name).
+
+Express the deployment process as **structured JSON** where helpful; prefer **AI Generate** (existing product capability, if present) to **author or assist** generating workflow JSON, then persist/version it like other workflows.
+
+### Direction
+
+1. **Trigger:** **Deploy** click → client **automatically** calls **online API** (per Arch: exact route, method, auth).  
+2. **Query parameter:** **Deploy Application Name** (required) — identifies the deployment target application name.  
+3. **Body:** Two top-level sections (names TBD in Arch): **(A)** full **original application** record / fields, **(B)** full **workflow** data for execution. Neither block is optional for correct execution.  
+4. **Runtime:** **Online API** runs the **deployment workflow** using that payload.  
+5. **Parity:** JSON workflow includes the same logical phases as the current deploy sequence unless Arch documents an intentional change.
+
+### Notes for PM / Arch / Test
+
+- Maps to **APP** (application management), **REC** / **online** semantics (execution via online API), and **CV** (workflow JSON as the deploy definition).  
+- Arch: online API entrypoint(s), how application name binds to workflow execution, idempotency, failure/retry, and relation to operation-api vs online-api.  
+- Test: submit deploy name → online API runs workflow → target state matches expectations (create/update/save or successor steps); regression vs current three-step deploy where applicable.
+
+**Recorded:** 2026-04-19 (user request — backlog entry only).
