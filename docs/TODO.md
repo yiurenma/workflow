@@ -53,17 +53,34 @@ After the user confirms **Deploy**, show **three sequential steps** with clear s
 
 **Status:** Open (recorded only — not implemented)
 
-**Summary:** In the **import** flow, the allowed plugin or step types (e.g. names along the lines of **eFails**, **FunctionVR**, **FunctionV3**, **Message** / dispatch — exact catalog TBD) appear to be driven by **local logic or assumptions** instead of the **authoritative list returned or described by the API** (JSON / OpenAPI schema).
+**Summary:** In the **import** flow, validation uses a **wrong local list** of types. The **operation-api** does not publish an OpenAPI `enum` for step kinds: `Plugin.action` is a `WorkflowType` whose `type` field is a **plain string** in persistence and JSON (any value can be stored). The **de facto** contract is the set of values the control plane and **workflow-ui** already exchange today.
 
-**Problem:** The UI or import path should not maintain a parallel enum; it should align with whatever the **operation or control API** exposes for valid plugin/step kinds so new API types work without code changes.
+### Confirmed: `action.type` values (operation-api / saved workflow JSON)
+
+These are the wire-format strings used end-to-end in **`workflow-ui`** (`src/api/mappers/workFlowMapper.ts`) and **`workflow-operation-api`** integration examples (`WorkflowUpdateController` OpenAPI example, `workflow-integration-test-data.json`, tests). They are the strings in **`pluginList[].action.type`** (and typically mirrored in **`pluginList[].uiMap.type`** for canvas mapping).
+
+| `action.type` (API / saved JSON) | Typical UI node (workflow-ui `Plugin` enum) |
+|----------------------------------|---------------------------------------------|
+| `CONSUMER` | HTTP Fetch (`Consumer`) |
+| `CONSUMERWITHOUTERROR` | Safe Fetch (`Consumer_Without_Error`) — **note:** wire string has **no** underscore between `CONSUMER` and `WITHOUT` |
+| `IFELSE` | Condition (`If-Else`) |
+| `MESSAGE` | Dispatch (`Message`) |
+| `FUNCTION_V2` | Transform (`Function_V2`) — mapper also accepts legacy `FUNCTION` as input |
+| `FUNCTION_V3` | Transform+ (`Function_V3`) |
+
+**Not** part of that contract (today): types like `HTTP_CALL`, `LOGIC`, `DISPATCH`, `IF_ELSE` as **`action.type`** — those names appear in **product README** or **import modal copy** but do **not** match what `GET/POST /api/workflow` round-trips through `workFlowMapper.ts`.
+
+### Known bug (import modal vs API)
+
+**`workflow-ui/src/components/ImportWorkflowModal.tsx`** validates against `["FUNCTION_V2", "FUNCTION_V3", "HTTP_CALL", "LOGIC"]` and documents the same in UI copy. That list is **incorrect** for real saved workflows: valid imports must allow at least **`CONSUMER`**, **`CONSUMERWITHOUTERROR`**, **`IFELSE`**, and **`MESSAGE`** in addition to the function types, aligned with **`workFlowMapper.ts`** (single source of truth until the backend exposes a formal enum or catalog endpoint).
 
 **Next steps for implementers:**
 
-1. Re-read the relevant **OpenAPI / JSON schema** (or discovery endpoint, if any) for the import payload and plugin catalog.  
-2. Replace any hardcoded type lists or HTTP-side guessing with **data derived from that contract** (or a single shared source of truth shared with the backend).  
-3. Regression: import a workflow that uses every API-documented type; confirm validation and dropdowns (if any) stay in sync after API adds a type.
+1. Align import validation (and any “allowed types” UI) with **`pluginToBackendType` / `backendTypeToPlugin`** in `workFlowMapper.ts`, or extract shared constants from that module.  
+2. Optionally: add an OpenAPI `enum` or dedicated **plugin-type catalog** endpoint in operation-api so clients are not duplicated — today the schema is only “string”.  
+3. Regression: import JSON exported from UAT/production containing each row in the table above; expect **pass** without false “invalid plugin type” errors.
 
 ### Notes for PM / Arch / Test
 
 - Likely maps to **APP** / **CV** depending on where import lives; Arch should cite the exact schema fields and endpoint(s), not PM master.  
-- Test cases should assert **no drift** between API schema and UI-allowed types after this change.
+- Test cases should assert **no drift** between saved `action.type` values and import validation after this change.
