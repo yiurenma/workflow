@@ -165,27 +165,36 @@ After the import fix lands, the **test application** (the app used for automated
 
 **Status:** Open (recorded only — not implemented)
 
-**Summary:** **Rewrite** the **`deploy`** function so the **online API** is invoked **automatically when the user clicks Deploy** (no separate manual “call API” step beyond that click/confirm path). The **required query parameter** is the **Deploy Application Name** (the target name under which deployment runs). The full deployment path is **driven as a workflow** (not only ad-hoc sequential client calls). The workflow’s steps should **subsume or orchestrate** the **existing deployment steps** already used today (see the **Hub — Deploy action** item above: **CreateApplicationName** → **UpdateApplicationName** → **SaveWorkflow**, and any related proxy/CORS work in **Deploy — Step 1 fails…**). Implementers must **inventory current deploy code paths** and map each into explicit **workflow steps** so behavior stays equivalent or intentionally evolved per PM/Arch.
+**Summary:** **Rewrite** the **`deploy`** function so the **online API** is invoked **automatically when the user clicks Deploy** (no separate manual “call API” step beyond that click/confirm path). The full deployment path is **driven as a workflow** (not only ad-hoc sequential client calls). The workflow’s steps should **subsume or orchestrate** the **existing deployment steps** already used today (see the **Hub — Deploy action** item above: **CreateApplicationName** → **UpdateApplicationName** → **SaveWorkflow**, and any related proxy/CORS work in **Deploy — Step 1 fails…**). Implementers must **inventory current deploy code paths** and map each into explicit **workflow steps** so behavior stays equivalent or intentionally evolved per PM/Arch.
+
+**Two application-name concepts (must stay distinct in UX, API, and docs):**
+
+| Concept | Meaning |
+|--------|--------|
+| **User input application name** (query param) | The **application name to execute** — i.e. the name the **online API / workflow runtime** will **run under** after deploy. This is what the user **types or submits** as the deploy target identifier. **It must be this name**, not a mix-up with the source app. |
+| **Original application name** (body block A) | The **application the user is deploying** — the **source** app already loaded in the Hub (the “current” application whose full payload is sent). All **application-level fields** for **that** name belong in body block **(A)**. |
+
+The **required query parameter** carries **only** the **user input application name** = **name to execute**. The body’s **first block** carries **everything** for the **original application name** = **app being deployed** (source). Do not conflate the two in field naming or copy.
 
 **Request body (two blocks — both required):** The online API cannot execute the workflow without **both** of the following in the request payload:
 
-1. **Application name block:** **All information** associated with the **original** Application Name (the app the user is deploying **from**). When the user clicks **Deploy**, the UI should surface/show this full application payload (same intent as “everything we have for the current app”) so it is clear what is being sent and so the server has complete app context.  
-2. **Workflow block:** **All workflow information** (definitions / graph / plugins / mappings needed to run the deployment workflow on the target name).
+1. **Application block (original / source):** **All information** for the **original application name** — the application the user **needs to deploy** (the Hub context / source app). When the user clicks **Deploy**, the UI should surface/show this full payload so it is obvious **what is being deployed**.  
+2. **Workflow block:** **All workflow information** (definitions / graph / plugins / mappings) for that same deploy action, so the runtime can execute the workflow **under the user input application name** (execute target).
 
 Express the deployment process as **structured JSON** where helpful; prefer **AI Generate** (existing product capability, if present) to **author or assist** generating workflow JSON, then persist/version it like other workflows.
 
 ### Direction
 
 1. **Trigger:** **Deploy** click → client **automatically** calls **online API** (per Arch: exact route, method, auth).  
-2. **Query parameter:** **Deploy Application Name** (required) — identifies the deployment target application name.  
-3. **Body:** Two top-level sections (names TBD in Arch): **(A)** full **original application** record / fields, **(B)** full **workflow** data for execution. Neither block is optional for correct execution.  
-4. **Runtime:** **Online API** runs the **deployment workflow** using that payload.  
+2. **Query parameter:** **User input application name** = **application name to execute** (required). **Not** the original/source name unless product explicitly chooses them to be identical (user may deploy to a different execute name).  
+3. **Body:** **(A)** Full record for **original application name** (application to deploy / source). **(B)** Full **workflow** data. Neither block is optional for correct execution.  
+4. **Runtime:** **Online API** runs the **deployment workflow** **for the query param name** (execute), using source app + workflow from the body.  
 5. **Parity:** JSON workflow includes the same logical phases as the current deploy sequence unless Arch documents an intentional change.
 
 ### Notes for PM / Arch / Test
 
 - Maps to **APP** (application management), **REC** / **online** semantics (execution via online API), and **CV** (workflow JSON as the deploy definition).  
-- Arch: online API entrypoint(s), how application name binds to workflow execution, idempotency, failure/retry, and relation to operation-api vs online-api.  
-- Test: submit deploy name → online API runs workflow → target state matches expectations (create/update/save or successor steps); regression vs current three-step deploy where applicable.
+- Arch: online API entrypoint(s), **explicit mapping** of query param (**execute name**) vs body block A (**source app**), idempotency, failure/retry, and relation to operation-api vs online-api.  
+- Test: given **distinct** execute name vs source name (where product allows), API uses query for **execution** and body A for **source app**; regression when both names are equal.
 
 **Recorded:** 2026-04-19 (user request — backlog entry only).
