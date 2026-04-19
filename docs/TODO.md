@@ -91,6 +91,53 @@ After the import fix lands, the **test application** (the app used for automated
 
 ---
 
+## UI — Consistent control heights; visible button labels (destructive / primary)
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** Across **workflow-ui**, form **inputs** and **buttons** do not share a consistent height, which makes layouts look uneven and unpolished. Separately, **button label text is sometimes invisible** (reported on the red **Delete** control in the application form: the button is red but the word “Delete” does not appear). The same class of issue may affect **blue** (primary) buttons and others—if foreground text color matches or is too close to the background, users cannot tell what the control does.
+
+### Problems to track
+
+1. **Height alignment:** Standardize vertical sizing (and related padding / line-height) so inputs, selects, and buttons align on the same baseline grid app-wide (or per design system tokens), not only in isolated screens.  
+2. **Label visibility audit:** Review **all** button variants (destructive/red, primary/blue, secondary, ghost, disabled) for **real rendered text** and **contrast** in default, hover, focus, and disabled states; fix incorrect `color` / inherited styles / `opacity` / icon-only assumptions so labels always read clearly.
+
+### Investigation hints for implementers
+
+- Likely causes of “missing” label: CSS `color` same as fill, global link/button reset, `text-transparent`, low opacity layer, overflow clipping, or theme token mismatch on destructive variant. Confirm in devtools (computed `color`, `visibility`, `font-size`, `line-height`, parent `overflow`).
+
+### Notes for PM / Arch / Test
+
+- Maps primarily to **APP** (forms, application management) and general **CV** / shared components if buttons are reused globally.  
+- Test: visual regression on representative forms (application form, modals, toolbar); accessibility contrast checks for button text on each variant.
+
+**Recorded:** 2026-04-19 (user report — no code change in this task).
+
+---
+
+## Deploy — Step 1 fails on Deploy URL due to cross-reference (CORS); route via proxy API
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** In the **Deploy** flow, **step 1** fails when the user enters a **Deploy URL** (target API base). The browser reports a **cross-reference error** (typically **CORS**: the Hub origin cannot call the target host directly). The first deploy step therefore errors even when the URL is otherwise valid.
+
+**Expected direction:** Resolve cross-origin access by **not** calling the target host directly from the browser for deploy steps (or equivalent). **Theoretically, call a proxy API** (same-origin or server-side) that performs **CreateApplicationName** (and related steps) toward the user-supplied base URL, so the client talks only to the trusted proxy and avoids browser CORS blocks.
+
+### Scope / acceptance (for implementers)
+
+- Deploy step 1 succeeds when given a valid remote base URL that previously failed from the browser due to CORS.  
+- Document in Arch: which service exposes the proxy, auth, and how the client passes the user’s base URL safely.  
+- Regression: UAT and local still work; no silent credential leakage to unintended hosts.
+
+### Notes for PM / Arch / Test
+
+- Maps to **APP** (Deploy) and **infra** / **operation-api** (or dedicated proxy) per Arch.  
+- PM master: user-visible outcome only (“Deploy works with my URL”); no HTTP detail in master.
+
+**Recorded:** 2026-04-19 (user report — no code change in this task).
+
+---
+
 ## Validation — Relax `uiMapList` ↔ `pluginList` checks for IF/ELSE edge ids (test / branch flows)
 
 **Status:** Open (recorded only — not implemented)
