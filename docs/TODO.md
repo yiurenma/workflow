@@ -46,3 +46,24 @@ After the user confirms **Deploy**, show **three sequential steps** with clear s
 - **Scenario:** Start from an **existing** application (user is editing / has loaded a real app in the Hub). In the Deploy form, enter a **different** application name than the one currently loaded. Use the **UAT base URL** (same environment as the operation/control APIs already used in UAT — “the URL is the UAT URL”) as the Deploy URL field.  
 - **Expectation:** The three auto-built requests run in order; the target ends up with the **new** application name populated (create + update + workflows), proving the flow works end-to-end against UAT without manual path entry.  
 - **Regression:** Also cover “same name as current app” if product allows it; primary acceptance path is **existing context + new name in the input box**.
+
+---
+
+## Import — plugin / step type list should come from API schema (not hardcoded)
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** In the **import** flow, the allowed plugin or step types (e.g. names along the lines of **eFails**, **FunctionVR**, **FunctionV3**, **Message** / dispatch — exact catalog TBD) appear to be driven by **local logic or assumptions** instead of the **authoritative list returned or described by the API** (JSON / OpenAPI schema).
+
+**Problem:** The UI or import path should not maintain a parallel enum; it should align with whatever the **operation or control API** exposes for valid plugin/step kinds so new API types work without code changes.
+
+**Next steps for implementers:**
+
+1. Re-read the relevant **OpenAPI / JSON schema** (or discovery endpoint, if any) for the import payload and plugin catalog.  
+2. Replace any hardcoded type lists or HTTP-side guessing with **data derived from that contract** (or a single shared source of truth shared with the backend).  
+3. Regression: import a workflow that uses every API-documented type; confirm validation and dropdowns (if any) stay in sync after API adds a type.
+
+### Notes for PM / Arch / Test
+
+- Likely maps to **APP** / **CV** depending on where import lives; Arch should cite the exact schema fields and endpoint(s), not PM master.  
+- Test cases should assert **no drift** between API schema and UI-allowed types after this change.
