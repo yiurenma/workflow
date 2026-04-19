@@ -135,3 +135,26 @@ After the import fix lands, the **test application** (the app used for automated
 - PM master: user-visible outcome only (“Deploy works with my URL”); no HTTP detail in master.
 
 **Recorded:** 2026-04-19 (user report — no code change in this task).
+
+---
+
+## Validation — Relax `uiMapList` ↔ `pluginList` checks for IF/ELSE edge ids (test / branch flows)
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** The app shows **“Validation failed”** with many errors like: **`uiMapList[n].source` / `target`**: edge source or target **`"IFELSE_1"`**, **`"IFELSE_2"`**, … **does not exist in `pluginList`**. On real or **test** workflows with condition branches, this rule is **too strict**: the UI should not fail wholesale just because every IF/ELSE branch id is not present as a discrete entry in `pluginList` (e.g. synthetic branch nodes, prior condition routing, or flows used only for testing).
+
+**Direction:** **Relax** validation (and any related client-side tests) for these cases—**do not require** that every IF/ELSE-related edge endpoint string map 1:1 to a `pluginList` id when the graph is otherwise coherent. Product/engineering should define the exact rule (e.g. skip or soften checks for `IFELSE_*` endpoints in test flows, or align mapper so branch endpoints resolve without false negatives).
+
+### Scope / acceptance (for implementers)
+
+- Flows that today surface dozens of **edge does not exist in pluginList** errors for **`IFELSE_*`** (and similar) either **pass validation** or get a **narrow, actionable** message—not a blocking wall of false positives.  
+- Keep strict checks where they still matter (e.g. real missing steps for non-branch plugins) unless Arch explicitly widens the rule.  
+- Regression: save/load/import for workflows with multiple **IFELSE** branches on UAT (`workflow-ui-gamma.vercel.app`) without spurious validation failure.
+
+### Notes for PM / Arch / Test
+
+- Maps to **CV** (canvas / `uiMapList` edges) and **APP** if validation runs on save or deploy.  
+- Arch: document the intended graph invariant after relaxation (what is still validated vs skipped).
+
+**Recorded:** 2026-04-19 (user report + UAT validation screenshot — no code change in this task).
