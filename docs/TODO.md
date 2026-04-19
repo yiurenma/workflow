@@ -112,3 +112,26 @@ After the import fix lands, the **test application** (the app used for automated
 - Test: visual regression on representative forms (application form, modals, toolbar); accessibility contrast checks for button text on each variant.
 
 **Recorded:** 2026-04-19 (user report — no code change in this task).
+
+---
+
+## Deploy — Step 1 fails on Deploy URL due to cross-reference (CORS); route via proxy API
+
+**Status:** Open (recorded only — not implemented)
+
+**Summary:** In the **Deploy** flow, **step 1** fails when the user enters a **Deploy URL** (target API base). The browser reports a **cross-reference error** (typically **CORS**: the Hub origin cannot call the target host directly). The first deploy step therefore errors even when the URL is otherwise valid.
+
+**Expected direction:** Resolve cross-origin access by **not** calling the target host directly from the browser for deploy steps (or equivalent). **Theoretically, call a proxy API** (same-origin or server-side) that performs **CreateApplicationName** (and related steps) toward the user-supplied base URL, so the client talks only to the trusted proxy and avoids browser CORS blocks.
+
+### Scope / acceptance (for implementers)
+
+- Deploy step 1 succeeds when given a valid remote base URL that previously failed from the browser due to CORS.  
+- Document in Arch: which service exposes the proxy, auth, and how the client passes the user’s base URL safely.  
+- Regression: UAT and local still work; no silent credential leakage to unintended hosts.
+
+### Notes for PM / Arch / Test
+
+- Maps to **APP** (Deploy) and **infra** / **operation-api** (or dedicated proxy) per Arch.  
+- PM master: user-visible outcome only (“Deploy works with my URL”); no HTTP detail in master.
+
+**Recorded:** 2026-04-19 (user report — no code change in this task).
