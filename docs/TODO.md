@@ -80,6 +80,10 @@ These are the wire-format strings used end-to-end in **`workflow-ui`** (`src/api
 2. Optionally: add an OpenAPI `enum` or dedicated **plugin-type catalog** endpoint in operation-api so clients are not duplicated — today the schema is only “string”.  
 3. Regression: import JSON exported from UAT/production containing each row in the table above; expect **pass** without false “invalid plugin type” errors.
 
+### Test application — cover every node / `action.type`
+
+After the import fix lands, the **test application** (the app used for automated or manual workflow regression in dev/UAT) must include **at least one step of each** supported `action.type`: **`CONSUMER`**, **`CONSUMERWITHOUTERROR`**, **`IFELSE`**, **`MESSAGE`**, **`FUNCTION_V2`**, **`FUNCTION_V3`**. Use that workflow to verify save/load, canvas rendering, drawer edits, and **import/export** for each kind so regressions cannot hide behind paths that only exercise a subset of nodes.
+
 ### Notes for PM / Arch / Test
 
 - Likely maps to **APP** / **CV** depending on where import lives; Arch should cite the exact schema fields and endpoint(s), not PM master.  
