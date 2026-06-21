@@ -59,8 +59,3 @@ QA（Quality Assurance），负责**手动测试**，验证功能在真实环境
 5. 编写测试报告（ui-test-report-vX.0.md）
 6. 提交给 Test Manager 审核
 ```
-
-## 🔗 相关文档
-
-- 测试用例 → [../01-Test-Manager/work-logs/](../01-Test-Manager/work-logs/)
-- E2E 测试报告 → [../03-E2E/README.md](../03-E2E/README.md)

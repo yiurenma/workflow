@@ -40,9 +40,3 @@
 5. **Success Metrics** - 成功指标
 
 完成后，累加到 [baseline.md](baseline.md)
-
-## 🔗 相关文档
-
-- 技术方案 → [../03-Architect/README.md](../03-Architect/README.md)
-- 测试用例 → [../06-Testing/01-Test-Manager/README.md](../06-Testing/01-Test-Manager/README.md)
-- 用户文档 → [../98-product-docs/README.md](../98-product-docs/README.md)

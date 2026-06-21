@@ -24,10 +24,3 @@
 2. **5 个为什么** - 深挖根本原因
 3. **可执行的行动项** - 具体的改进措施
 4. **时间线** - 事件发生、发现、解决的时间线
-
-## 🔗 相关文档
-
-- 团队协作 → [../01-team/README.md](../01-team/README.md)
-- PM 文档 → [../02-PM/README.md](../02-PM/README.md)
-- 架构文档 → [../03-Architect/README.md](../03-Architect/README.md)
-- 测试文档 → [../06-Testing/README.md](../06-Testing/README.md)

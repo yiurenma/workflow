@@ -49,10 +49,3 @@
    - PASS → 进入交付
    - FAIL → 开新 TODO
 ```
-
-## 🔗 相关文档
-
-- 产品需求 → [../../02-PM/README.md](../../02-PM/README.md)
-- 架构设计 → [../../03-Architect/README.md](../../03-Architect/README.md)
-- QA 测试报告 → [../02-QA/README.md](../02-QA/README.md)
-- E2E 测试报告 → [../03-E2E/README.md](../03-E2E/README.md)

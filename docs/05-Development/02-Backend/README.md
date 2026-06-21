@@ -46,13 +46,6 @@
 - **连接池：** HikariCP
 - **构建工具：** Maven
 
-## 🔗 相关文档
-
-- 产品需求 → [../../02-PM/README.md](../../02-PM/README.md)
-- 架构设计 → [../../03-Architect/README.md](../../03-Architect/README.md)
-- 前端实现 → [../01-Frontend/README.md](../01-Frontend/README.md)
-- 数据库变更 → [../03-Database/README.md](../03-Database/README.md)
-
 ## 📦 代码仓库
 
 - **operation-api:** commit on `main`, push to `origin/main`

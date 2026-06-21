@@ -83,10 +83,3 @@
 | `workflow-online-api` | commit on `develop`, push to `origin/develop` | Backend |
 
 **重要：** 每个 TODO 完成后，**必须**所有涉及的 repos 都 commit + merge + push
-
-## 🔗 相关文档
-
-- 团队协作 → [../01-team/README.md](../01-team/README.md)
-- 前端开发 → [../05-Development/01-Frontend/README.md](../05-Development/01-Frontend/README.md)
-- 后端开发 → [../05-Development/02-Backend/README.md](../05-Development/02-Backend/README.md)
-- 数据库开发 → [../05-Development/03-Database/README.md](../05-Development/03-Database/README.md)

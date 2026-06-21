@@ -75,8 +75,3 @@
 - **数据库：** Neon PostgreSQL
 - **迁移工具：** Flyway (Spring Boot 集成)
 - **连接池：** HikariCP
-
-## 🔗 相关文档
-
-- 架构设计 → [../../03-Architect/README.md](../../03-Architect/README.md)
-- 后端实现 → [../02-Backend/README.md](../02-Backend/README.md)

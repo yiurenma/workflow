@@ -44,13 +44,6 @@
 - **UI 组件库：** IBM Carbon Design System
 - **样式：** CSS Modules
 
-## 🔗 相关文档
-
-- 产品需求 → [../../02-PM/README.md](../../02-PM/README.md)
-- 架构设计 → [../../03-Architect/README.md](../../03-Architect/README.md)
-- 后端实现 → [../02-Backend/README.md](../02-Backend/README.md)
-- QA 测试 → [../../06-Testing/02-QA/README.md](../../06-Testing/02-QA/README.md)
-
 ## 📦 代码仓库
 
 - **Repo:** `workflow-ui`

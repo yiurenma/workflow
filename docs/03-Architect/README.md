@@ -37,11 +37,3 @@
 7. **Impact Analysis** - 影响范围（Frontend/Backend/Database）
 8. **Security Considerations** - 安全考量
 9. **Trade-offs** - 技术权衡
-
-## 🔗 相关文档
-
-- 产品需求 → [../02-PM/README.md](../02-PM/README.md)
-- 测试用例 → [../06-Testing/01-Test-Manager/README.md](../06-Testing/01-Test-Manager/README.md)
-- 前端实现 → [../05-Development/01-Frontend/README.md](../05-Development/01-Frontend/README.md)
-- 后端实现 → [../05-Development/02-Backend/README.md](../05-Development/02-Backend/README.md)
-- 数据库实现 → [../05-Development/03-Database/README.md](../05-Development/03-Database/README.md)
