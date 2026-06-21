@@ -1,0 +1,17 @@
+{
+  "name": "workflow-doc-audit-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Test-driven documentation audit suite for the Workflow platform. Each test encodes a documented US/AC from docs/baseline/pm-doc-master.md and verifies it against the UAT environment.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:desktop": "playwright test --project=desktop-chrome",
+    "test:mobile": "playwright test --project=mobile-chrome",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
