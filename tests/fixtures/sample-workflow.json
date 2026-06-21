@@ -1,0 +1,55 @@
+{
+  "_comment": "Regression workflow covering all 6 backend wire-format plugin types (CV-AC-54-4). Used by import/validation and execution tests.",
+  "pluginList": [
+    {
+      "id": 1,
+      "description": "Consumer step",
+      "linkingIdOfRuleListAndAction": "rule-1",
+      "ruleList": [{ "key": "$.data.amount", "remark": "amount exists" }],
+      "action": { "type": "CONSUMER", "provider": "http" }
+    },
+    {
+      "id": 2,
+      "description": "Consumer without error step",
+      "linkingIdOfRuleListAndAction": "rule-2",
+      "ruleList": [{ "key": "$.data.id", "remark": "id exists" }],
+      "action": { "type": "CONSUMERWITHOUTERROR", "provider": "http" }
+    },
+    {
+      "id": 3,
+      "description": "Branch step",
+      "linkingIdOfRuleListAndAction": "rule-3",
+      "ruleList": [{ "key": "$.data.amount", "remark": "amount exists" }],
+      "action": { "type": "IFELSE", "elseLogic": "e30=" }
+    },
+    {
+      "id": 4,
+      "description": "Message step",
+      "linkingIdOfRuleListAndAction": "rule-4",
+      "ruleList": [{ "key": "$.data.id", "remark": "id exists" }],
+      "action": { "type": "MESSAGE" }
+    },
+    {
+      "id": 5,
+      "description": "Function v2 step",
+      "linkingIdOfRuleListAndAction": "rule-5",
+      "ruleList": [{ "key": "$.data.id", "remark": "id exists" }],
+      "action": { "type": "FUNCTION_V2" }
+    },
+    {
+      "id": 6,
+      "description": "Function v3 step",
+      "linkingIdOfRuleListAndAction": "rule-6",
+      "ruleList": [{ "key": "$.data.id", "remark": "id exists" }],
+      "action": { "type": "FUNCTION_V3" }
+    }
+  ],
+  "uiMapList": [
+    { "id": "e1", "source": "1", "target": "2" },
+    { "id": "e2", "source": "2", "target": "3" },
+    { "id": "e3", "source": "3", "target": "IFELSE_3_true" },
+    { "id": "e4", "source": "3", "target": "IFELSE_3_false" },
+    { "id": "e5", "source": "4", "target": "5" },
+    { "id": "e6", "source": "5", "target": "6" }
+  ]
+}

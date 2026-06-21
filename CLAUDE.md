@@ -20,6 +20,7 @@ This file is read by Claude Code at the start of every session. All rules below 
 
 ```
 1. PM        → write/update `pm-doc-v*.md` (user story + acceptance criteria) **and** update `workflow-agent-teams/docs/pm-doc-master.md`: bump **Document version**, align the **Chinese** product baseline with the TODO, add a **Revision history** row (TODO label + US/AC IDs). Filename `pm-doc-master.md` is fixed — only version and content change. **Do not** put HTTP paths, methods, or error codes in the master — those belong in **Arch** docs. See **PM master baseline** below.
+   - **User-facing docs (same priority as the master):** if the TODO changes **user-visible behavior**, PM also updates the **root-repo** user docs in the same change set — see **User-facing docs maintenance** below. **Every shipped TODO that a user can perceive MUST add one line to `docs/promo/CHANGELOG.md`**; update the relevant `docs/guide/*` page(s) by change type (node→`reference/nodes.md`, error code→`reference/error-codes.md`, call contract→`reference/api-call.md`, workflow JSON/validation→`reference/workflow-json.md`, rule semantics→`reference/rules-jsonpath.md`, any feature→manual/getting-started as needed).
 2. Architect → write/update Arch doc (approach, data flow, security, trade-offs)
 3. Test Mgr  → write test cases based on PM doc + Arch doc
 4. STOP      → present all three docs to the human and wait for explicit approval
@@ -87,6 +88,7 @@ Cloud runs often truncate context — **do not end your turn** until you have ve
 | 5 | `ui-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` before E2E (when the item involved code) |
 | 5.5 | `e2e-test-report-vX.Y.md` exists in `workflow-agent-teams/docs/` after E2E Tester completes Playwright run against UAT |
 | 6 | E2E Tester runs Playwright UAT against https://workflow-ui-gamma.vercel.app; `uat-report-vX.Y.md` written with PASS verdict; TODO marked **Done** only after E2E Tester confirms UAT PASS |
+| 7 | **User-facing docs impact assessed.** If the TODO changes user-visible behavior: `docs/promo/CHANGELOG.md` has a new line **and** the relevant `docs/guide/*` page(s) are updated and committed/pushed (root repo). If purely internal (no user-perceivable change), state **N/A** and why. |
 
 If you cannot complete a row (e.g. waiting on human UAT), **state that blocker** instead of silently stopping.
 
@@ -100,6 +102,18 @@ If you cannot complete a row (e.g. waiting on human UAT), **state that blocker**
 - E2E test reports: `workflow-agent-teams/docs/e2e-test-report-vX.Y.md`
 - UAT reports: `workflow-agent-teams/docs/uat-report-vX.Y.md`
 - TODO backlog: `workflow-agent-teams/TODO.md`
+- **User-facing docs (root repo, canonical):** `docs/guide/` (product manual, getting-started, concepts, `reference/*`, `examples/*`) + `docs/promo/` (pitch, landing, demo-script, **`CHANGELOG.md`**). These are the **outward-facing / adoption** docs — kept in the **root `workflow` repo** (not the submodule). Navigated from root `DOCS.md`. See **User-facing docs maintenance** below.
+
+## User-facing docs maintenance
+
+These docs make the platform adoptable by outside users; they must not drift from shipped behavior.
+
+- **Owner:** PM, as a standing deliverable (same priority as `pm-doc-master.md`).
+- **When:** in the **same change set** as the TODO that changes user-visible behavior (end-of-task checklist row 7).
+- **CHANGELOG is the bridge:** every shipped, user-perceivable TODO adds **one line** to `docs/promo/CHANGELOG.md` (this is what the UI "What's New" surfaces — see TODO `TODO-ui-surface-docs-whatsnew-help`).
+- **Map change → page:** node type → `docs/guide/reference/nodes.md`; error code → `reference/error-codes.md`; call contract (path/header/param/response) → `reference/api-call.md`; workflow JSON / import validation → `reference/workflow-json.md`; rule semantics → `reference/rules-jsonpath.md`; new user feature → `01-product-manual.md` / `02-getting-started.md` as needed.
+- **Truthfulness rule:** user docs describe **current** behavior; aspirational features go under a "路线图/Roadmap" note, never as if shipped.
+- **Location note:** user docs live in the **root repo**; internal process docs (`pm-doc-*`, `TODO.md`) live in the `workflow-agent-teams` submodule. A TODO touching both updates both.
 
 ## PM master baseline (`pm-doc-master.md`)
 
