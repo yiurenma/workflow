@@ -22,7 +22,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
-  use: { trace: 'on-first-retry', screenshot: 'only-on-failure' },
+  // IGNORE_HTTPS_ERRORS=1 用于在做 TLS 拦截的出口代理后跑（如沙箱环境的 egress
+  // gateway MITM CA），其证书系统信任但浏览器自带证书库不认。默认严格校验。
+  use: {
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    ignoreHTTPSErrors: !!process.env.IGNORE_HTTPS_ERRORS,
+  },
   projects: [
     // —— 功能/契约（无需浏览器，黑盒 API）——
     { name: 'api', testDir: './api', use: { baseURL: OPERATION_API_BASE } },
