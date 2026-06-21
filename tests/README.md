@@ -1,6 +1,12 @@
-# tests/ — 测试驱动文档审计套件
+# tests/ — 全量回归 + 可用性测试套件
 
-每个测试**编码一条文档里的 US/AC**（来自 `docs/baseline/pm-doc-master.md` v2.29），对 UAT 环境实跑；PASS/FAIL 即为该条的审计结论（TDD：失败=未实现=一条 `docs/TODO-doc-gaps.md` 缺口）。
+每个测试**编码一条文档里的 US/AC**（来自 `docs/baseline/pm-doc-master.md`）。PASS/FAIL 即审计结论。
+
+> 📐 **完整测试策略（业界规范、硬/软门禁、分层）见 [`TEST-STRATEGY.md`](TEST-STRATEGY.md)；覆盖进度见 [`coverage-matrix.md`](coverage-matrix.md)。**
+
+**套件分组**：`api`/`contract`（功能+OpenAPI 契约，@gate）· `e2e`（功能流程，桌面+移动）· `a11y`（WCAG 2.2 AA，axe，@gate）· `ux`（ISO25010 可用性断言）· `perf`（Core Web Vitals，@gate）· `visual`（截图基线，@advisory）。
+**门禁**：`npm run test:gate` 跑硬门禁（CI 阻断用）；`@advisory` 出报告不阻断。
+**库** `lib/`：`a11y.ts`(axe) · `webvitals.ts`(CWV) · `contract.ts`(OpenAPI+ajv) · `ux.ts`(可用性断言) · `seed.ts`(确定性种子)。
 
 ## 如何跑
 

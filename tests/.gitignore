@@ -3,3 +3,7 @@ playwright-report/
 test-results/
 .playwright/
 package-lock.json
+
+# 视觉回归基线是源文件，需跟踪（根 .gitignore 忽略了 *.png，这里重新纳入）
+!visual/**/*.png
+

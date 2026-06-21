@@ -52,6 +52,18 @@
 
 - [ ] **UI — 每个 API 的"如何调用"面板** *(label: `TODO-ui-call-this-api-panel`)* — **Status:** Open（P1，贴 API maker 定位）。**目标:** 在应用/画布放 "Call this API" 面板，自动用 `applicationName` 拼出调用契约（路径/必需头 `X-Request-Correlation-Id`/参数）+ 可复制 curl。**依赖/呼应:** `TODO-per-workflow-api-contract-openapi`（每 API 契约/OpenAPI）。**追溯:** docs/guide/reference/api-call.md。
 
+## F. 测试体系发现的真实缺陷（2026-06-21，黑盒套件 `tests/` 实跑抓到）
+
+> 由新建的可用性/无障碍套件实跑发现，均为 workflow-ui 缺陷（走完整流程修复）。已在 `tests/` 用基线豁免/`@advisory` fixme 标记，修复后移除标记即转回归。
+
+- [ ] **UI 无障碍 — /records 表单控件缺标签** *(label: `TODO-ui-a11y-records-form-labels`)* — **Status:** Open（critical）。**证据:** axe WCAG 2.2 AA 扫 `/records`：`label` ×2、`select-name` ×1（表单输入/下拉无可访问名）。**修复:** 给筛选输入/下拉补 `<label>`/`aria-label`。**追溯:** `tests/a11y/records.a11y.spec.ts` 基线豁免。
+
+- [ ] **UI 无障碍 — 画布文字对比度不足** *(label: `TODO-ui-a11y-canvas-color-contrast`)* — **Status:** Open（serious）。**证据:** axe 扫画布：`color-contrast` ×6，文字/背景对比度 < 4.5:1。**修复:** 调整相关文字颜色达 WCAG AA。**追溯:** `tests/a11y/canvas.a11y.spec.ts` 基线豁免。
+
+- [ ] **UI 可用性 — 模态支持 Esc 关闭（WAI-ARIA 对话框模式）** *(label: `TODO-ui-modal-esc-close-wai-aria`)* — **Status:** Open（usability）。**证据:** 新建/导入等模态有 ×/Cancel 但**无 Esc 关闭**（违反 WAI-ARIA Authoring Practices 对话框模式）。**修复:** 模态统一加 Esc 关闭处理。**追溯:** `tests/ux/*` `@advisory` fixme。
+
+- [ ] **测试 — CI 接线（各 repo 配置阻断合并）** *(label: `TODO-tests-ci-wiring-gate`)* — **Status:** Open。**目标:** 在各 repo CI 上跑 `tests/` 的 `--grep @gate` 作为合并门禁（需动 submodule CI 配置）。`@advisory` 出报告不阻断。**追溯:** `tests/TEST-STRATEGY.md`。
+
 ## C. 复核依赖（环境）
 
 - [ ] **测试环境 — 放行 UAT egress 以实跑 `tests/`** *(label: `TODO-tests-egress-allowlist-uat-hosts`)* — **Status:** Open（环境配置）。**问题：** 当前沙箱 egress 拦截 `workflow-ui-gamma.vercel.app`、`workflow-operation-api-n9sbp.ondigitalocean.app`、`workflow-online-api-nr3e4.ondigitalocean.app`（`Host not in allowlist`），`tests/` 套件无法实跑，审计中需实跑的项标记 BLOCKED(env)。**规格：** 将三 host 加入环境 egress 允许列表后运行 `tests/`，回填审计报告 §3–§5。**追溯：** 审计报告 §0/§8。
