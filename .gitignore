@@ -1,0 +1,26 @@
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Playwright / browser automation
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Temporary design/refactor artifacts
+*.png
+*.jpg
+*.jpeg
+# …but bug-evidence screenshots referenced by docs ARE tracked
+!docs/reports/uat/screenshots/**/*.png
+DESIGN.md
+REFACTOR_SUMMARY.md
+STYLE_REFACTOR_LOG.md
+uat-snapshot.md
+
+# Plugin / agent runtime files
+skills-lock.json
+
+# Generated demo video output (see scripts/generate-product-demo-video.sh)
+/artifacts/
