@@ -60,6 +60,8 @@
 
 - [ ] **UI 无障碍 — 画布文字对比度不足** *(label: `TODO-ui-a11y-canvas-color-contrast`)* — **Status:** Open（serious）。**证据:** axe 扫画布：`color-contrast` ×6，文字/背景对比度 < 4.5:1。**修复:** 调整相关文字颜色达 WCAG AA。**追溯:** `tests/a11y/canvas.a11y.spec.ts` 基线豁免。
 
+- [ ] **UI 无障碍 — 移动端导航激活态文字对比度不足** *(label: `TODO-ui-a11y-mobile-nav-contrast`)* — **Status:** Open（serious）。**证据:** axe 扫移动视口（390px）多页：移动 tab bar 激活态链接文字 `color-contrast` < 4.5:1（共享 nav，跨 /workflows、/、/records）。**修复:** 调整移动激活态文字/背景色达 WCAG AA。**追溯:** `tests/a11y/*` 移动端基线豁免。
+
 - [ ] **UI 可用性 — 模态支持 Esc 关闭（WAI-ARIA 对话框模式）** *(label: `TODO-ui-modal-esc-close-wai-aria`)* — **Status:** Open（usability）。**证据:** 新建/导入等模态有 ×/Cancel 但**无 Esc 关闭**（违反 WAI-ARIA Authoring Practices 对话框模式）。**修复:** 模态统一加 Esc 关闭处理。**追溯:** `tests/ux/*` `@advisory` fixme。
 
 - [ ] **测试 — CI 接线（各 repo 配置阻断合并）** *(label: `TODO-tests-ci-wiring-gate`)* — **Status:** Open。**目标:** 在各 repo CI 上跑 `tests/` 的 `--grep @gate` 作为合并门禁（需动 submodule CI 配置）。`@advisory` 出报告不阻断。**追溯:** `tests/TEST-STRATEGY.md`。

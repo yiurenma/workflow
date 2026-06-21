@@ -57,5 +57,32 @@
 | 画布 color-contrast ×6（serious） | `a11y/canvas` 基线 | `TODO-ui-a11y-canvas-color-contrast` |
 | /records 表单缺 label/select-name ×3（critical） | `a11y/records` 基线 | `TODO-ui-a11y-records-form-labels` |
 
-## 待补（迭代）
-- CV 规则校验、防错/反馈/空状态可用性样例、records/canvas 更细的 E2E、响应体 schema 逐端点校验、移动端 a11y/ux 扩展、CI 接线。
+## 全量补充（2026-06-21 第二轮）
+
+**新增套件与最终结果：全套件 103 passed / 12 skipped(均为已知 fixme/视口跳过) / 0 failed；硬门禁 @gate 62 passed / 0 failed。**
+
+| 套件 | 覆盖 | 状态 |
+|---|---|---|
+| `api/operation-full.spec.ts` | TC-01/02/03/10/11/18/19 + 错误码 WF-400-101/102/301/302/401/402、WF-404-000/101（自带数据可重复） | ✅ 19/19 @gate |
+| `api/online-full.spec.ts` | M0001、440000、缺参数、非法 body；M0002/M0004 需 keystore（fixme） | ✅ 5 + 2 fixme |
+| `a11y/home.a11y.spec.ts` | 主页 / + 关于页 /about（桌面+移动） | ✅ @gate |
+| `e2e/home.spec.ts` | CV-US-45 文案 + CV-US-46 favicon + CTA 导航 | ✅ |
+| `e2e/carbon-tokens.spec.ts` | CV-AC-36：导航 #161616、标准按钮 0px、主色 #0f62fe | ✅ @gate |
+| `perf/web-vitals-pages.spec.ts` | 主页/画布 CWV | ✅ @gate |
+| `visual/pages.visual.spec.ts` | 主页/记录/画布 基线 | ✅ @advisory |
+| `ux/records.ux.spec.ts` | 记录页 + 导航触控目标 | ✅ @gate |
+
+**对比度基线按视口生效**：桌面严格、移动端豁免共享 nav 对比度债（→ `TODO-ui-a11y-mobile-nav-contrast`）。
+
+## 已知差距（基线/TODO，套件抓到的真实缺陷）
+| 发现 | TODO |
+|---|---|
+| 模态未支持 Esc 关闭（WAI-ARIA） | `TODO-ui-modal-esc-close-wai-aria` |
+| 画布 color-contrast ×6（serious） | `TODO-ui-a11y-canvas-color-contrast` |
+| /records 表单缺 label/select-name ×3（critical） | `TODO-ui-a11y-records-form-labels` |
+| 移动端 nav 激活态对比度不足 | `TODO-ui-a11y-mobile-nav-contrast` |
+| online 执行/幂等需 keystore 密钥 | `TODO-tests-online-api-keystore-secret-for-execution` |
+| CI 阻断接线（各 repo） | `TODO-tests-ci-wiring-gate` |
+
+## 待补（后续迭代）
+- CV 规则键 JSONPath 校验的 E2E（需打开节点抽屉）、防错/反馈/空状态可用性样例接入、响应体 schema 逐端点 ajv 校验、settings/copy/history/deploy 的 UI E2E（mock 静态，需更全 mock 或 UAT）、移动端更多 ux 扩展。
