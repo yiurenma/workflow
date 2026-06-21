@@ -12,6 +12,8 @@ test-results/
 *.png
 *.jpg
 *.jpeg
+# …but bug-evidence screenshots referenced by docs ARE tracked
+!docs/reports/uat/screenshots/**/*.png
 DESIGN.md
 REFACTOR_SUMMARY.md
 STYLE_REFACTOR_LOG.md

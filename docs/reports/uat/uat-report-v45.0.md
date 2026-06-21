@@ -95,6 +95,27 @@ curl -s -X DELETE "$OPERATION/api/workflow?applicationName=$APP"   # cleanup
 
 ---
 
+## §5 Bug evidence (screenshots)
+
+Captured on real UAT via `tests/scripts/capture-bug-screenshots.mjs`, stored in `screenshots/v45/`. Each corresponds to a `docs/TODO-doc-gaps.md` §F item.
+
+| Bug (TODO label) | Screenshot |
+|---|---|
+| `TODO-tests-canvas-mobile-and-uat-flows` — mobile Run lives in overflow (cause of `@uat G2` timeout) | `screenshots/v45/mobile-run-in-overflow.png` |
+| `TODO-ui-drawer-done-disable-on-rule-error` — Done stays enabled despite red JSONPath error (CV-AC-50-4) | `screenshots/v45/drawer-done-not-disabled-on-rule-error.png` |
+| `TODO-ui-a11y-records-form-labels` — /records filter controls without labels | `screenshots/v45/records-a11y-form-labels.png` |
+| `TODO-ui-a11y-canvas-color-contrast` — canvas text contrast < 4.5:1 | `screenshots/v45/canvas-color-contrast.png` |
+| `TODO-ui-a11y-mobile-nav-contrast` — mobile tab bar active link contrast | `screenshots/v45/mobile-nav-contrast.png` |
+| `TODO-ui-modal-esc-close-wai-aria` — modal has ×/Cancel but no Esc | `screenshots/v45/modal-no-esc-close.png` |
+
+The two most decisive:
+
+![mobile Run in overflow](screenshots/v45/mobile-run-in-overflow.png)
+*Mobile (390px): Run/Import/etc. are inside the `⋯` overflow menu — `@uat G2` never opened it, hence the 30s timeout. Product is correct; the test is.*
+
+![drawer Done not disabled on rule error](screenshots/v45/drawer-done-not-disabled-on-rule-error.png)
+*Invalid JSONPath `a, b` shows the red error "Rule key must be a single JSONPath expression", yet the blue **Done** button is still clickable (CV-AC-50-4 wants it disabled).*
+
 ## §F New / confirmed gaps (filed to `docs/TODO-doc-gaps.md`)
 
 1. **`@uat` canvas flows are stubs, mobile G2 fails** — concrete evidence now that egress is open; updates `TODO-tests-canvas-mobile-and-uat-flows`.

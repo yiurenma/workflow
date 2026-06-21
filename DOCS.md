@@ -23,7 +23,8 @@
 | 看产品要做什么（基线） | `docs/baseline/pm-doc-master.md`（v2.29，中文 US/AC） |
 | 看文档分类与最新版本 | `docs/INDEX.md` |
 | 看"文档是否真的实现了"的审计结论 | `docs/doc-implementation-audit-v1.0.md` |
-| 看审计发现的缺口/待办 | `docs/TODO-doc-gaps.md` |
+| **找"还没做的待办"** | `docs/TODO-doc-gaps.md` —— 顶部「🗂️ 待办登记表（索引）」先扫 状态/优先级/分类，再跳小节看详情；UI bug 配截图（`docs/reports/uat/screenshots/`），不必通读 |
+| 看最近一次画布 UAT 实跑结论 + bug 截图 | `docs/reports/uat/uat-report-v45.0.md` |
 | 跑测试驱动审计套件 | `tests/`（见下方"如何跑测试"） |
 | 看接口契约/错误码 | `docs/arch/arch-doc-v43.0.md`（最新） |
 | 看主测试用例 | `docs/baseline/TEST_CASES_MASTER.md` |

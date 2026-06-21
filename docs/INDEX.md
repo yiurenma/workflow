@@ -10,8 +10,10 @@
 |---|---|
 | `../DOCS.md` | 仓库根总导航（跨所有 repo） |
 | `doc-implementation-audit-v1.0.md` | **文档↔实现审计报告**（逐 US/AC 核对结果） |
-| `TODO-doc-gaps.md` | 审计发现的缺口待办（独立于 submodule TODO） |
-| `../tests/` | 测试驱动审计套件（Playwright API + E2E） |
+| `TODO-doc-gaps.md` | 审计发现的缺口待办（独立于 submodule TODO）——**顶部有「🗂️ 待办登记表」索引：先扫状态/优先级，再跳小节；UI bug 配截图** |
+| `reports/uat/uat-report-v45.0.md` | 最近一次画布全功能 UAT 实跑（真实 UAT）结论 + bug 截图 |
+| `reports/uat/screenshots/` | UI bug 截图证据（按报告版本分目录，如 `v45/`） |
+| `../tests/` | 测试驱动审计套件（Playwright API + E2E）；bug 截图复现脚本 `../tests/scripts/capture-bug-screenshots.mjs` |
 
 ## 1. 产品基线 baseline/
 
