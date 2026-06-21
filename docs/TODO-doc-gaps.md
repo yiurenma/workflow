@@ -40,6 +40,18 @@
 
 - [ ] **一等公民"调用另一个工作流"节点 + API 目录** *(label: `TODO-call-workflow-node-and-catalog`)* — **Status:** Open（P2）。**规格：** 从注册表挑已发布 workflow（带契约）的节点；加 API 目录用于发现。
 
+## E. UI 体现文档更新（用户文档 → 产品内可见，2026-06-21）
+
+> 来源：用户要求"文档更新如何在 UI 体现"。这些是 **workflow-ui 功能**，需走完整 PM→Arch→Test→批准→实现流程（会动 workflow-ui 子模块）。按价值排序。
+
+- [ ] **UI — What's New / 更新提示（CHANGELOG 驱动）** *(label: `TODO-ui-surface-docs-whatsnew-help`)* — **Status:** Open（P0，最直接的"文档→UI"闭环）。**目标:** 读 `docs/promo/CHANGELOG.md`，导航上加 What's New 入口 + 未读红点（localStorage 记已读版本，看过即清）；点开为更新抽屉。**架构决策（需 Arch 定）:** UI 如何取根仓库 markdown —— 构建时把 CHANGELOG 拷进 workflow-ui / 起文档站让 UI 链过去 / 提供 docs 接口。最小可行 = 构建时打入 CHANGELOG。**追溯:** CLAUDE.md「User-facing docs maintenance」。
+
+- [ ] **UI — Docs/Help 页（升级现有 about）** *(label: `TODO-ui-docs-help-page`)* — **Status:** Open（P1）。**目标:** 把现有空壳 `workflow-ui/src/routes/about.tsx` 升级为文档/帮助中心，渲染 `docs/guide/` 或链到文档站；导航 NAV 数组（`src/routes/__root.tsx`）加 "Docs" 项（桌面 + 移动 tab bar）。**追溯:** docs/guide。
+
+- [ ] **UI — 上下文帮助（节点/规则/空状态）** *(label: `TODO-ui-contextual-help-links`)* — **Status:** Open（P1）。**目标:** 节点编辑器每种节点的 help 文案取自 `reference/nodes.md`；规则字段旁 "?" 链到 `reference/rules-jsonpath.md`；应用/记录空状态链到入门指南。**追溯:** docs/guide/reference。
+
+- [ ] **UI — 每个 API 的"如何调用"面板** *(label: `TODO-ui-call-this-api-panel`)* — **Status:** Open（P1，贴 API maker 定位）。**目标:** 在应用/画布放 "Call this API" 面板，自动用 `applicationName` 拼出调用契约（路径/必需头 `X-Request-Correlation-Id`/参数）+ 可复制 curl。**依赖/呼应:** `TODO-per-workflow-api-contract-openapi`（每 API 契约/OpenAPI）。**追溯:** docs/guide/reference/api-call.md。
+
 ## C. 复核依赖（环境）
 
 - [ ] **测试环境 — 放行 UAT egress 以实跑 `tests/`** *(label: `TODO-tests-egress-allowlist-uat-hosts`)* — **Status:** Open（环境配置）。**问题：** 当前沙箱 egress 拦截 `workflow-ui-gamma.vercel.app`、`workflow-operation-api-n9sbp.ondigitalocean.app`、`workflow-online-api-nr3e4.ondigitalocean.app`（`Host not in allowlist`），`tests/` 套件无法实跑，审计中需实跑的项标记 BLOCKED(env)。**规格：** 将三 host 加入环境 egress 允许列表后运行 `tests/`，回填审计报告 §3–§5。**追溯：** 审计报告 §0/§8。
