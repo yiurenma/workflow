@@ -6,13 +6,23 @@
 
 ## 0. 环境与可达性
 
+**远程 UAT（egress 拦截）：**
+
 | 目标 | 结果 |
 |---|---|
 | `workflow-operation-api-n9sbp.ondigitalocean.app` | ❌ BLOCKED — `Host not in allowlist`（egress 未放行） |
 | `workflow-online-api-nr3e4.ondigitalocean.app` | ❌ BLOCKED — 同上 |
 | `workflow-ui-gamma.vercel.app` | ❌ BLOCKED — 同上 |
 
-> 影响：所有需要**实跑** UAT 的验收项（Layer 4 交互 / Layer 5 效果 / API 实测）在本轮标记 **BLOCKED(env)**，但均给出**源码层**判定。
+**本地实跑（2026-06-21，已替代远程，详见 `local-verification-report.md`）：** 三服务全部本地起（operation-api/online-api 用 H2，UI 用 mock），`tests/` 对本地实跑。浏览器预装于 `/opt/pw-browsers`（Chromium 141）无需下载。
+
+| 套件 | 结果 |
+|---|---|
+| operation-api API（H2，8080）`tests/api/app.spec.ts` | ✅ **10/10 PASS** |
+| online-api API（共享 H2，8081）`tests/api/online.spec.ts` | ✅ 2 PASS（路由/校验/未知应用）· ⏭️ 2 SKIP（幂等需 keystore 密钥；SSE=GAP-1） |
+| 前端 E2E（真实 Chromium，桌面1280+移动390×844）`tests/e2e/*` | ✅ **17 PASS · 1 SKIP · 0 FAIL** |
+
+> 影响：§3/§5 的前端 APP/CV 项与 §3 的 operation-api 项**已由本地实跑确认 PASS**（不再仅源码判定）；§4 的 REC 执行/幂等完整路径仍因缺真实 keystore 密钥标 **BLOCKED(secret)**，路由/校验层已 PASS。新增偏差 **DIV-3**（见 §7）。
 
 ## 1. 总体结论
 
@@ -56,7 +66,7 @@
 | US/AC | 能力 | 判定 | 证据 |
 |---|---|---|---|
 | REC-US-19 | 记录浏览/筛选/下钻/父子重试链 | ✅ | UI `routes/records/index.tsx`；后端 `WorkflowRecordController:57-120`（筛选 app/status/确认号/跟踪号/客户ID/日期；详情含子记录 originWorkflowRecordId） |
-| REC-US-12 | 对接方提交运行请求 | ✅ | `WorkflowOnlineController.postWorkflow():115`，`POST /api/workflow`（query applicationName/confirmationNumber，header x-request-id） |
+| REC-US-12 | 对接方提交运行请求 | ✅（本地 PASS） | `WorkflowOnlineController.postWorkflow():115`，`POST /api/workflow`（query applicationName/confirmationNumber，**必需头 `X-Request-Correlation-Id`** — 见 DIV-3）。本地实跑：缺头→400、未知应用→`M0001` |
 | REC-US-13 | 丰富化：按连线顺序、JSONPath 全匹配、合并、无隐式默认分支 | ✅ | `WorkflowDispatchService:70-131` 按 logicOrder 排序；`ruleAndTypesFullyMatch():200-223` 全匹配才执行；`DefaultWorkflowRuntimePayloadImpl:64-87` 合并 runtime |
 | REC-US-14 | 下发：丰富化后执行、各通道状态写入、总状态组合、通道可扩展 | ✅ | `WorkflowDispatchService:126-183`；`WorkflowRuleAndTypeService:105-146`（SM_SUCCESS/SM_FAIL、tracking）；`DispatchStepStatus`（sms/email/push 列表，可扩展） |
 | REC-US-15 | 幂等：同应用同业务键唯一、重复拒绝 | ✅ | `WorkflowOnlineController:204-209`（requestId+applicationName 查重 → M0002）；索引 `idx_workflow_record_corr_app` |
@@ -91,6 +101,7 @@
 
 - **DIV-1（Deploy 三步命名）**：`pm-doc-master` APP-AC-52-D4 与多版 arch 用 `CreateApplicationName/UpdateApplicationName/SaveWorkflow` 作为"路径"，实际不存在同名端点，UI 映射到 `POST/PATCH /api/workflow/entity-setting` + `POST /api/workflow`。建议在最新 arch 文档把"逻辑三步 ↔ 真实端点"对应表写清。
 - **DIV-2（历史回滚）**：APP-AC-11-D2 描述"仅回滚工作流定义、产生新修订"，实现为**客户端**解码旧定义后重存（无服务端 rollback 端点）。功能满足，但 arch 文档宜注明实现位置在前端。
+- **DIV-3（在线执行关联头名，本地实跑发现）**：online-api 必需请求头是 **`X-Request-Correlation-Id`**，非早期源码审计写的 `x-request-id`（缺该头返回 400 `440000`）。已修正 `tests/api/online.spec.ts` 与 §4 表述。建议 arch 文档据此澄清头名。
 
 ## 8. 复核方式（egress 放行后）
 

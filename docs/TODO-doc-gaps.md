@@ -20,6 +20,12 @@
 
 - [ ] **Arch 澄清 — 历史回滚为客户端重存语义** *(label: `TODO-doc-clarify-history-rollback-client-side`)* — **Status:** Open（文档修订）。**问题：** APP-AC-11-D2 描述"仅回滚工作流定义、产生新修订"，实现为前端 `history-drawer` 解码旧定义后 `saveWorkflow()` 重存，无服务端 rollback 端点。**规格：** arch 文档注明回滚实现位置在前端、通过重存产生新 Envers 修订。**追溯：** DIV-2。
 
+## B'. 本地实跑新增（2026-06-21）
+
+- [ ] **Arch 澄清 — 在线执行必需关联头名为 `X-Request-Correlation-Id`** *(label: `TODO-doc-clarify-online-correlation-header-name`)* — **Status:** Open（文档修订）。**证据（本地实跑）：** 缺该头 online-api 返回 400 `440000`「Required request header 'X-Request-Correlation-Id' ... not present」。早期源码审计误记为 `x-request-id`。**规格：** arch/test 文档统一为 `X-Request-Correlation-Id`。**追溯：** DIV-3 / REC-US-12。
+
+- [ ] **测试/环境 — online-api 完整执行需真实 JKS keystore 密钥** *(label: `TODO-tests-online-api-keystore-secret-for-execution`)* — **Status:** Open（环境/密钥）。**证据：** 本地 H2 起 online-api 后，执行写 runtime 触发 `SecureData` 加密；仓库默认 `jks.storepass=changeit` 非真实密码（`keytool` 报 password incorrect），首次执行返回 500「Exception while encrypting value」。**影响：** REC-US-15 幂等（重复→`M0002`）等完整执行路径本地无法验证（仅路由/校验/未知应用已 PASS）。**规格：** 提供 `JKS_STOREPASS`/`JKS_KEYPASS`（或本地测试用 keystore + 对应密码）后即可实跑幂等。**追溯：** 审计 §4 / local-verification-report §online-api。
+
 ## C. 复核依赖（环境）
 
 - [ ] **测试环境 — 放行 UAT egress 以实跑 `tests/`** *(label: `TODO-tests-egress-allowlist-uat-hosts`)* — **Status:** Open（环境配置）。**问题：** 当前沙箱 egress 拦截 `workflow-ui-gamma.vercel.app`、`workflow-operation-api-n9sbp.ondigitalocean.app`、`workflow-online-api-nr3e4.ondigitalocean.app`（`Host not in allowlist`），`tests/` 套件无法实跑，审计中需实跑的项标记 BLOCKED(env)。**规格：** 将三 host 加入环境 egress 允许列表后运行 `tests/`，回填审计报告 §3–§5。**追溯：** 审计报告 §0/§8。
