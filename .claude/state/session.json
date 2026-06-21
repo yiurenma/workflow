@@ -1,0 +1,34 @@
+{
+  "session_id": "C476CB09-71B4-4001-8FD6-9CC0BE8D6567",
+  "parent_session_id": null,
+  "state": "initialized",
+  "state_version": 1,
+  "started_at": "2026-06-21T13:31:59Z",
+  "updated_at": "2026-06-21T13:31:59Z",
+  "resume_token": "61E13FFC-EF18-403C-92F5-678ED26EB0B7",
+  "event_seq": 1,
+  "last_event_id": "event-000001",
+  "fork_count": 0,
+  "orchestration": {
+    "max_state_retries": 3,
+    "retry_backoff_seconds": 10
+  },
+  "cwd": "/Users/yuangeorge/Documents/GitHub/workflow-master",
+  "project_name": "workflow-master",
+  "prompt_seq": 13,
+  "git": {
+    "branch": "(no git)",
+    "uncommitted_changes": 0,
+    "last_commit": "none"
+  },
+  "plans": {
+    "exists": false,
+    "last_modified": 0,
+    "wip_tasks": 0,
+    "todo_tasks": 0,
+    "pending_tasks": 0,
+    "completed_tasks": 0
+  },
+  "changes_this_session": [],
+  "intent": "literal"
+}
