@@ -84,5 +84,23 @@
 | online 执行/幂等需 keystore 密钥 | `TODO-tests-online-api-keystore-secret-for-execution` |
 | CI 阻断接线（各 repo） | `TODO-tests-ci-wiring-gate` |
 
+## 画布全功能 E2E（2026-06-21 第三轮，`e2e/canvas-full.spec.ts`）
+
+多角度覆盖；用 Import 注入多节点工作流作为种子（客户端，不依赖后端数据）。桌面 22 passed / 3 skip(1 advisory + 2 @uat)；移动端 4 passed（结构层）+ 富交互待溢出菜单。
+
+| 角度 | 用例 | 状态 |
+|---|---|---|
+| CV-US-04 打开/浏览/平移缩放 | A1-A3 | ✅ 桌面+移动 |
+| CV-US-05/42 调色板+描述 | B | ✅ 桌面 |
+| CV-US-53/54/55/57 导入校验（合法/非法类型/重复ID/缺字段/IFELSE分支/markdown围栏/Apply） | C1-C7 | ✅ 桌面 |
+| CV-US-07/37/41/30 节点抽屉（打开/只读默认+Edit/关闭按钮/点空白关闭/可改宽） | D1-D5 | ✅ 桌面 |
+| CV-US-50 规则键 JSONPath 内联校验 | E1 | ✅ 桌面（Done禁用=E2 fixme→TODO） |
+| CV-US-08/43 删除节点+清边 | F1 | ✅ 桌面 |
+| CV-US-17 Test 运行模态 | G1（G2 真执行=@uat） | ✅/🔵 |
+| CV-US-20/21/44 AI Explain/Generate 模态 | H1/H2（真返回=@uat） | ✅/🔵 |
+| CV-US-09 保存 | I1（I2 持久化=@uat） | ✅/🔵 |
+
+> `@uat` 项需 UAT egress 放行后 `RUN_UAT=1` 实跑（Run 真执行、Save 持久化、AI 真返回）。
+
 ## 待补（后续迭代）
 - CV 规则键 JSONPath 校验的 E2E（需打开节点抽屉）、防错/反馈/空状态可用性样例接入、响应体 schema 逐端点 ajv 校验、settings/copy/history/deploy 的 UI E2E（mock 静态，需更全 mock 或 UAT）、移动端更多 ux 扩展。

@@ -64,6 +64,10 @@
 
 - [ ] **UI 可用性 — 模态支持 Esc 关闭（WAI-ARIA 对话框模式）** *(label: `TODO-ui-modal-esc-close-wai-aria`)* — **Status:** Open（usability）。**证据:** 新建/导入等模态有 ×/Cancel 但**无 Esc 关闭**（违反 WAI-ARIA Authoring Practices 对话框模式）。**修复:** 模态统一加 Esc 关闭处理。**追溯:** `tests/ux/*` `@advisory` fixme。
 
+- [ ] **UI 画布 — 节点抽屉 Done 未随规则错误禁用（CV-AC-50-4）** *(label: `TODO-ui-drawer-done-disable-on-rule-error`)* — **Status:** Open（轻微）。**证据:** 画布全功能 E2E：节点抽屉编辑态规则键填非法 JSONPath（如 `a, b`）会显示内联红错（"single JSONPath expression"），但提交按钮 **Done 未被禁用**；CV-AC-50-4 要求"验证错误时禁用保存按钮"。**修复:** 任一规则键有错时禁用 Done。**追溯:** `tests/e2e/canvas-full.spec.ts` E2（@advisory fixme）。
+
+- [ ] **测试 — 画布富交互的移动端覆盖 + UAT 真后端流程** *(label: `TODO-tests-canvas-mobile-and-uat-flows`)* — **Status:** Open。**目标:** (1) 移动端画布工具栏在溢出菜单内，需补"打开溢出菜单"以解锁移动端的 import/配置/删除等富交互 E2E；(2) `@uat` 标记的真后端流程（Run 真执行返回摘要、Save 持久化重载、AI Explain/Generate 真返回）需 UAT egress 放行后用 `RUN_UAT=1` 实跑。**追溯:** `tests/e2e/canvas-full.spec.ts`。
+
 - [ ] **测试 — CI 接线（各 repo 配置阻断合并）** *(label: `TODO-tests-ci-wiring-gate`)* — **Status:** Open。**目标:** 在各 repo CI 上跑 `tests/` 的 `--grep @gate` 作为合并门禁（需动 submodule CI 配置）。`@advisory` 出报告不阻断。**追溯:** `tests/TEST-STRATEGY.md`。
 
 ## C. 复核依赖（环境）
