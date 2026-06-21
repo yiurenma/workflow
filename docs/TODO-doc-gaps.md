@@ -26,6 +26,20 @@
 
 - [ ] **测试/环境 — online-api 完整执行需真实 JKS keystore 密钥** *(label: `TODO-tests-online-api-keystore-secret-for-execution`)* — **Status:** Open（环境/密钥）。**证据：** 本地 H2 起 online-api 后，执行写 runtime 触发 `SecureData` 加密；仓库默认 `jks.storepass=changeit` 非真实密码（`keytool` 报 password incorrect），首次执行返回 500「Exception while encrypting value」。**影响：** REC-US-15 幂等（重复→`M0002`）等完整执行路径本地无法验证（仅路由/校验/未知应用已 PASS）。**规格：** 提供 `JKS_STOREPASS`/`JKS_KEYPASS`（或本地测试用 keystore + 对应密码）后即可实跑幂等。**追溯：** 审计 §4 / local-verification-report §online-api。
 
+## D. 产品功能差距 —— "Serverless Easy API Maker" 定位（roadmap，2026-06-21）
+
+> 来源：把平台当 API maker 评估的结论（见 plan 文件 roadmap）。用户已确认这些是"细节、后续丰富"，先登记。
+
+- [ ] **同步响应塑造 —— 调用即拿到结果** *(label: `TODO-online-api-shape-synchronous-response`)* — **Status:** Open（P0）。**问题：** `postWorkflow` 返回 `ResponseEntity<Void>`，成功仅 200 空体；API maker 的命门是"调它→拿到结果"。**规格：** 让工作流计算并塑造响应 body/状态码/头（与 SSE 逐步返回 `TODO-online-api-post-optional-sse-runtime-per-step` 对齐）。**追溯：** 产品说明书"能力边界"。
+
+- [ ] **每个 API 的契约 + 自动 OpenAPI** *(label: `TODO-per-workflow-api-contract-openapi`)* — **Status:** Open（P0）。**问题：** 用户做出来的每个 API 无输入/输出 schema、无自动文档，复用卡在"别人不知道怎么调"。**规格：** 为每个已发布 workflow 生成入参/出参契约 + OpenAPI + curl/示例。
+
+- [ ] **发布 API 的入站鉴权 / 限流 / CORS** *(label: `TODO-published-api-auth-ratelimit-cors`)* — **Status:** Open（P1）。**问题：** 入站端点对用户 API 无访问控制（现有 auth 仅出站 trust token）。**规格：** API key/token、按 API 限流/配额、CORS 配置。
+
+- [ ] **每个 API 自定义路径 / 方法** *(label: `TODO-published-api-custom-routing`)* — **Status:** Open（P1）。**问题：** 全部走 `POST /api/workflow?applicationName=`，API 无独立身份。**规格：** 自定义路径/方法/路径参数，URL 自解释。
+
+- [ ] **一等公民"调用另一个工作流"节点 + API 目录** *(label: `TODO-call-workflow-node-and-catalog`)* — **Status:** Open（P2）。**规格：** 从注册表挑已发布 workflow（带契约）的节点；加 API 目录用于发现。
+
 ## C. 复核依赖（环境）
 
 - [ ] **测试环境 — 放行 UAT egress 以实跑 `tests/`** *(label: `TODO-tests-egress-allowlist-uat-hosts`)* — **Status:** Open（环境配置）。**问题：** 当前沙箱 egress 拦截 `workflow-ui-gamma.vercel.app`、`workflow-operation-api-n9sbp.ondigitalocean.app`、`workflow-online-api-nr3e4.ondigitalocean.app`（`Host not in allowlist`），`tests/` 套件无法实跑，审计中需实跑的项标记 BLOCKED(env)。**规格：** 将三 host 加入环境 egress 允许列表后运行 `tests/`，回填审计报告 §3–§5。**追溯：** 审计报告 §0/§8。

@@ -1,0 +1,48 @@
+{
+  "pluginList": [
+    {
+      "id": 1,
+      "description": "Fetch customer profile",
+      "linkingIdOfRuleListAndAction": "rule-1",
+      "ruleList": [
+        { "key": "$.customerId", "remark": "run only when a customerId is present" }
+      ],
+      "action": {
+        "type": "CONSUMER",
+        "provider": "CustomerService",
+        "httpRequestMethod": "GET",
+        "httpRequestUrlWithQueryParameter": "https://example.com/customers?id={{customerId}}",
+        "trackingNumberSchemaInHttpResponse": "$.profile.contact"
+      }
+    },
+    {
+      "id": 2,
+      "description": "High-value branch",
+      "linkingIdOfRuleListAndAction": "rule-2",
+      "ruleList": [
+        { "key": "$.amount", "remark": "branch when an amount exists" }
+      ],
+      "action": {
+        "type": "IFELSE",
+        "elseLogic": "eyJsb3ciOiB0cnVlfQ=="
+      }
+    },
+    {
+      "id": 3,
+      "description": "Notify customer (SMS/Email)",
+      "linkingIdOfRuleListAndAction": "rule-3",
+      "ruleList": [
+        { "key": "$.profile.contact", "remark": "only notify when a contact was enriched" }
+      ],
+      "action": {
+        "type": "MESSAGE",
+        "provider": "NotificationChannel"
+      }
+    }
+  ],
+  "uiMapList": [
+    { "id": "e1", "source": "1", "target": "2" },
+    { "id": "e2", "source": "2", "target": "IFELSE_2_true" },
+    { "id": "e3", "source": "IFELSE_2_true", "target": "3" }
+  ]
+}

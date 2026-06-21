@@ -4,7 +4,19 @@
 
 > **整理原则：** 本目录下 `docs/` 是 submodule `workflow-agent-teams/docs/`（238 篇）+ 根级 `TODO.md`/`agent-system.md` 的**只读整理副本**。**未改动任何 submodule 文件**；原档与既有 agent 流程（`CLAUDE.md` 指向的路径）保持不变。Git 历史仍在各 submodule。
 
-## 快速入口
+## 👤 用户向文档（对外采用 / 推广）
+
+> 给"使用者"而非内部团队看的材料。新人从这里入门。
+
+| 我要… | 去 |
+|---|---|
+| 知道这是什么（产品说明书） | `docs/guide/01-product-manual.md` |
+| 5 分钟做出第一个 API（入门指南） | `docs/guide/02-getting-started.md` |
+| 查节点/规则/JSON/错误码（语言参考） | `docs/guide/reference/` |
+| 用户向文档总入口 | `docs/guide/index.md` |
+| 推广资产（定位/landing/demo/changelog） | `docs/promo/` |
+
+## 快速入口（内部）
 
 | 我要… | 去 |
 |---|---|
