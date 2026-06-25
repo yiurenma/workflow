@@ -147,7 +147,8 @@ open-webui serve --host 0.0.0.0 --port 3000
 
 ## 让它能联网搜索（Google）—— 不知道就上网查
 
-默认「小流」只用本地知识回答，遇到知识库外的问题会说「不确定」。想让它**自己上网搜**，
+**策略：本地优先，联网兜底。** 平时把 Web Search 开关**关着**，让它先用本地知识回答；
+只有**本地解决不了**（或需要实时/最新信息）时，才点亮开关让它上网。想让它能上网搜，
 用 Open WebUI 内置的 **Web Search**，接 **Google 官方可编程搜索（Programmable Search Engine, PSE）**。
 
 ### 一次性准备（拿两把钥匙）
@@ -163,6 +164,20 @@ open-webui serve --host 0.0.0.0 --port 3000
 - 填上面的 **API Key** 和 **Engine ID**
 
 之后在聊天框底部把 **Web Search** 开关点亮，提问时它就会先 Google、抓取网页、再综合回答（带来源链接）。
+**用法配合「本地优先」：开关平时关着，本地答不上来了再点亮它去查。**
+
+### 引擎优先级：Google 首选，不行再切别的
+Open WebUI 一次只用**一个**配置好的搜索引擎，所以把 **Google PSE 设为默认（首选）**。
+当 Google 不可用时（超免费额度 / 被限流 / 网络不通），到 Admin → Settings → Web Search 把 Engine
+临时切到备选，建议顺序：
+
+1. **Google PSE**（首选，官方结果）
+2. **DuckDuckGo**（免 key、最省事的兜底）
+3. **Serper / Tavily**（第三方，结果同样来自 Google，注册拿 key 即用）
+4. **SearXNG**（自建，进阶）
+
+> 想要「Google 不行自动换下一个」这种**自动链式兜底**，Open WebUI 原生不支持，需要进阶做法：
+> 给模型挂一个会 function-calling 的搜索工具（qwen2.5 支持），由它按顺序尝试。需要的话我再单独给你配。
 
 ### ⚠️ 联网搜索 = 运行时要外网（走你的 VPN）
 和本地答疑不同，搜索要实时访问 Google，所以**搜索时 VPN 必须开着**，且 Open WebUI 要能走到 VPN：
