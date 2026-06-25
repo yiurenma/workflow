@@ -19,13 +19,15 @@
 ## 到货即省时（先备好，插上电就能用）
 - [ ] **Windows Xray 客户端**：准备 **v2rayN / Nekoray** 的节点/订阅（手机 v2Box 帮不到 Windows 主机）。
       默认本地代理端口 HTTP `10809` / SOCKS `10808`。
-- [ ] **子域名规划**：`ai.你的域名`（AI 网关）、`workflow.你的域名`（给 workflow UI 绑 Vercel）、可选 `chat.你的域名`。
+- [x] **workflow 域名 / 子域名规划**：✅ `workflow.snailnow.com` 已绑 Vercel 上线（workflow UI）。
+      `ai.`（网关）/ `wx.`（微信）到货建 Cloudflare 隧道时自动配；可选 `chat.`。
 - [ ] **预生成 `GATEWAY_API_KEY`**：一串很长的随机字符串，先存密码管理器里。
 - [ ] **通读** [`QUICKSTART.md`](QUICKSTART.md) + `gateway/README.md` + `wechat/README-wechat.md`，心里有数。
 - [ ] **想好性格**（默认是「专业英式管家·小流」）：要改就先想好一句话风格，到货改 `system-prompt.md` 即可。
 
 ## 线下/硬件
-- [ ] **加购第二条 16GB DDR5-6000**（同型号），到货一起装，凑 **32G 双通道**。
+- [ ] ~~加购第二条 16GB 内存~~ —— **暂缓**。DDR5 现涨价（单条约 ¥1200），性价比差。
+      本用法**模型在显存里、网页用 pip 免 Docker**，16G 单条够起步；价格回落或真遇内存吃紧再补凑 32G 双通道。
 - [ ] **约上门装机理线师傅**（闲鱼/美团，¥100–200），交代："原封显卡插大主板、KVM 把笔记本和新主机接到同一显示器、理线"。
 - [ ] 收货时**核对配件**（显卡、电源、主板、内存、固态、机箱、KVM 切换器都到齐）。
 
