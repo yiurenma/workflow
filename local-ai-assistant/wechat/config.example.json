@@ -1,0 +1,28 @@
+{
+  "_说明": "chatgpt-on-wechat 企业微信(WeCom)自建应用配置示例。复制为 config.json 后改成你的值。详见 README-wechat.md。",
+
+  "_渠道": "用企业微信官方 API，零封号风险；接收消息需公网回调（见 frpc.example.ini 内网穿透）",
+  "channel_type": "wechatcom_app",
+  "wechatcom_corp_id": "你的企业ID(CorpID)",
+  "wechatcomapp_token": "你在『接收消息』里设的 Token",
+  "wechatcomapp_aes_key": "你在『接收消息』里设的 EncodingAESKey(43位)",
+  "wechatcomapp_secret": "自建应用的 Secret",
+  "wechatcomapp_agent_id": "自建应用的 AgentId",
+  "wechatcomapp_port": 9898,
+
+  "_后端": "回答来自本机 Ollama 的 OpenAI 兼容接口；模型名 = 你 ollama create 出来的",
+  "model": "workflow-helper",
+  "open_ai_api_key": "ollama",
+  "open_ai_api_base": "http://127.0.0.1:11434/v1",
+  "temperature": 0.3,
+  "character_desc": "你是 Workflow Studio 的专属助手「小流」，性格已在本地模型里设定，简洁专业地帮人用好这个平台。",
+
+  "_可选白名单": "企业微信里能用应用的成员由后台『可见范围』控制，通常只放你自己即可；如需再限可填成员账号",
+  "single_chat_prefix": [""],
+  "single_chat_reply_prefix": "",
+
+  "speech_recognition": false,
+  "voice_reply_voice": false,
+  "conversation_max_tokens": 2000,
+  "expires_in_seconds": 3600
+}

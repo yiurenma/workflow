@@ -1,0 +1,2 @@
+# 这个目录存放 build-knowledge 生成的产物（knowledge.md、Modelfile.generated）。
+# 产物本身被 .gitignore 忽略，只保留本占位文件让目录入库。

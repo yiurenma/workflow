@@ -1,0 +1,34 @@
+# workflow-helper —— 本地 Workflow 平台 AI 助手（Modelfile 模板）
+#
+# ⚠️ 这是「模板」，不要直接 ollama create 它。
+# 先跑 build-knowledge.ps1 / .sh，会把模板里的占位符替换好，生成两份最终文件：
+#     knowledge/Modelfile.chat.generated   （答疑模型，基座 qwen2.5:14b-instruct）
+#     knowledge/Modelfile.code.generated   （写码模型，基座 qwen2.5-coder:14b-instruct）
+# 然后：
+#     ollama create workflow-helper      -f knowledge/Modelfile.chat.generated
+#     ollama create workflow-helper-code -f knowledge/Modelfile.code.generated
+#
+# 占位符（由 build-knowledge 替换，下面用不带括号的名字以免生成物里残留标记）：
+#   FROM_MODEL     基座模型（chat / code 两份不同）
+#   ROLE_NOTE      角色补充说明（写码版注入「先校验再交付 JSON」；答疑版为空）
+#   SYSTEM_PROMPT  system-prompt.md（性格 + 护栏 + 双语）
+#   KNOWLEDGE      拼好的平台知识库
+#
+# 换基座/调参：改 build-knowledge 里的 FROM_CHAT / FROM_CODE 变量，或下面的 PARAMETER。
+# 显存吃紧/想更快：把 num_ctx 调小（如 4096）或换 7B 基座。
+
+FROM {{FROM_MODEL}}
+
+# 偏事实问答：低温度、稳定输出
+PARAMETER temperature 0.3
+PARAMETER top_p 0.9
+# 上下文窗口：知识库 + 多轮对话。16GB 显存 14B-Q4 跑 8192 稳；想更长可调 16384
+PARAMETER num_ctx 8192
+
+SYSTEM """
+{{SYSTEM_PROMPT}}
+{{ROLE_NOTE}}
+========== 以下是 Workflow Studio 平台知识库（回答须严格依据它，逐字引用关键事实）==========
+
+{{KNOWLEDGE}}
+"""
