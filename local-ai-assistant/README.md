@@ -56,6 +56,10 @@
 > Windows 上**不需要**额外装 bash —— 直接用 PowerShell 跑 `build-knowledge.ps1`。
 > `.sh` 是给你在旧 Mac 上改东西时用的。
 
+> 💡 **硬件建议：内存补到 32GB 双通道。** 单条 16GB 跑 Windows + Docker/Open WebUI + 浏览器偏紧，
+> 而且单条是单通道、带宽减半。再加**一条同型号** 16GB DDR5-6000（约 300-400 元）凑 32GB 双通道，
+> 是这台机器性价比最高的升级。暂不加也能用 —— 优先选下面的「pip 起 Open WebUI」免 Docker 路线省内存。
+
 **拿到代码：**
 ```powershell
 git clone <本仓库地址>
@@ -138,6 +142,38 @@ open-webui serve --host 0.0.0.0 --port 3000
 
 > 安全提示：本地模型 + 局域网使用时，机器人不会把你的聊天内容发到外网。
 > 只有当你（阶段三可选）接海外大模型 API 兜底时，内容才会出境——按需选择。
+
+---
+
+## 让它能联网搜索（Google）—— 不知道就上网查
+
+默认「小流」只用本地知识回答，遇到知识库外的问题会说「不确定」。想让它**自己上网搜**，
+用 Open WebUI 内置的 **Web Search**，接 **Google 官方可编程搜索（Programmable Search Engine, PSE）**。
+
+### 一次性准备（拿两把钥匙）
+1. **Google API Key**：到 Google Cloud Console 启用 **Custom Search API**，创建一个 API 密钥。
+2. **搜索引擎 ID (cx)**：到 https://programmablesearchengine.google.com 新建搜索引擎，
+   选「搜索整个网络」，复制它的 **Search engine ID**。
+   （PSE 免费额度约 100 次/天，个人够用；超了才计费。）
+
+### 在 Open WebUI 里打开
+管理员进 **Admin → Settings → Web Search**：
+- 打开 Web Search 开关
+- Engine 选 **Google PSE**
+- 填上面的 **API Key** 和 **Engine ID**
+
+之后在聊天框底部把 **Web Search** 开关点亮，提问时它就会先 Google、抓取网页、再综合回答（带来源链接）。
+
+### ⚠️ 联网搜索 = 运行时要外网（走你的 VPN）
+和本地答疑不同，搜索要实时访问 Google，所以**搜索时 VPN 必须开着**，且 Open WebUI 要能走到 VPN：
+- **用 pip 起 Open WebUI（这种场景推荐）**：它是宿主机进程，直接复用你电脑的 VPN（全局/TUN 模式最省心）。
+- **用 Docker 起**：要给容器单独配代理 —— 见 `docker-compose.yml` 里注释好的 `HTTP_PROXY/HTTPS_PROXY`
+  和 Web Search 环境变量，按提示填（也可不填环境变量，纯在上面的 Admin 界面里配）。
+
+> 隐私提示：开了联网搜索，你的提问会发给 Google。**只在需要时点亮那个开关**，平时纯本地不出网。
+
+> 不想配 Google？Open WebUI 也支持 **DuckDuckGo**（免 key）、**SearXNG**（自建）、
+> **Serper / Tavily**（第三方，结果同样来自 Google，注册即用）。你点名要 Google，PSE 是官方正路。
 
 ---
 

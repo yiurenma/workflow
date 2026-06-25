@@ -11,6 +11,19 @@ services:
       # 让 Open WebUI 连本机的 Ollama。Docker Desktop(Win/Mac) 用 host.docker.internal
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - WEBUI_AUTH=true        # 开启登录，避免局域网里谁都能用；首位注册者为管理员
+
+      # ---- 联网搜索（Google PSE）。也可不填这里，改在 Admin → Settings → Web Search 界面配 ----
+      # 注意：环境变量名随 Open WebUI 版本会变；下面是近期版本(0.5+/0.6)的名字，不生效就用 Admin 界面。
+      # - ENABLE_WEB_SEARCH=true
+      # - WEB_SEARCH_ENGINE=google_pse
+      # - GOOGLE_PSE_API_KEY=你的GoogleApiKey
+      # - GOOGLE_PSE_ENGINE_ID=你的搜索引擎ID
+
+      # ---- 让容器走 VPN/代理（联网搜索时必须，本地聊天不需要）----
+      # 把 7890 换成你代理客户端实际端口；并在客户端打开「允许局域网(Allow LAN)」。
+      # - HTTP_PROXY=http://host.docker.internal:7890
+      # - HTTPS_PROXY=http://host.docker.internal:7890
+      # - NO_PROXY=host.docker.internal,localhost,127.0.0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"   # Linux 上让容器能回连宿主机
     volumes:
