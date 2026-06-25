@@ -39,12 +39,29 @@
 
 ## 阶段一：能答疑的本地助手（到货当天）
 
-### 前置（硬件到货后）
-1. 装好 Windows 11，到 nvidia.cn 装最新显卡驱动。
-2. 装 [Ollama](https://ollama.com/download)（Windows 版，一路下一步）。
-3. 装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)（用于网页界面）。
-4. 把本仓库 clone 到主机（或只拷 `local-ai-assistant/` + `docs/98-product-docs/` 两个目录，
-   保持相对位置不变 —— 构建脚本靠相对路径找文档）。
+### 前置：软件清单（全新机器要装的全部东西）
+
+这是一台干净的 Windows 11，下面是**从零到能跑**所需的所有软件。按阶段标了「何时需要」，
+阶段一只需前 4 项即可上线。
+
+| # | 软件 | 何时需要 | 说明 / 下载 |
+|---|---|---|---|
+| 1 | **NVIDIA 显卡驱动** | 阶段一（必需） | nvidia.cn 或 GeForce Experience，装最新版 |
+| 2 | **Ollama** | 阶段一（必需） | https://ollama.com/download —— 本地推理引擎 |
+| 3 | **Git** | 阶段一（必需） | https://git-scm.com —— 拉本仓库；自带 Git-Bash 还能跑 `.sh` |
+| 4 | **网页界面**（二选一） | 阶段一（必需） | A. **Docker Desktop**（需开 WSL2）跑 `docker compose up -d`；<br>B. 嫌 Docker 重，可改用 **Python + `pip install open-webui`**（见下方「不想装 Docker」） |
+| 5 | **Python 3.10+** | 阶段二、三 | https://python.org —— 微信桥接、tools 脚本、（可选）Open WebUI 都要它。装时勾选 *Add to PATH* |
+| 6 | **chatgpt-on-wechat** | 阶段二 | `git clone` + `pip install`，见 `wechat/README-wechat.md` |
+
+> Windows 上**不需要**额外装 bash —— 直接用 PowerShell 跑 `build-knowledge.ps1`。
+> `.sh` 是给你在旧 Mac 上改东西时用的。
+
+**拿到代码：**
+```powershell
+git clone <本仓库地址>
+cd workflow\local-ai-assistant
+# 或只拷 local-ai-assistant\ + docs\98-product-docs\ 两个目录，保持相对位置（脚本靠相对路径找文档）
+```
 
 ### 三步起飞
 ```powershell
@@ -71,6 +88,56 @@ docker compose up -d
 - 旧 MacBook 2015 就这样变成「躺床上白嫖 5060Ti 算力」的遥控器。
 
 > 防火墙：Windows 首次会弹窗，允许专用网络访问 3000 端口即可让局域网设备连上。
+
+#### 不想装 Docker？用 pip 起 Open WebUI
+国内拉 `ghcr.io` 镜像常常很慢，如果你已装了 Python（阶段二/三也要用），可以跳过 Docker：
+```powershell
+pip install open-webui
+$env:OLLAMA_BASE_URL="http://127.0.0.1:11434"
+open-webui serve --host 0.0.0.0 --port 3000
+```
+效果一样，局域网照样开 `http://<主机IP>:3000`。
+
+---
+
+## 网络与代理（VPN）：什么时候要外网、怎么让它走你的 VPN
+
+**先记住一句话：机器人「跑起来」基本不用外网——本地模型推理完全离线。**
+外网只在两类时刻需要：
+
+| 场景 | 是否要外网 | 走哪条网络 |
+|---|---|---|
+| `ollama pull` 拉模型 | 要（装机一次性） | 海外/加速，VPN 可大幅提速 |
+| 拉 Open WebUI 的 Docker 镜像 | 要（装机一次性） | `ghcr.io` 国内常被墙，**最需要 VPN** |
+| `pip install` 装 Python 包 | 要 | 可用国内镜像（清华源），不一定要 VPN |
+| **日常答疑聊天（阶段一/二）** | **不要** | 纯本地，断网也能用 |
+| 微信收发消息 | 不要（微信本身国内可用） | 国内直连 |
+| 阶段三 查记录/触发（DigitalOcean 上的 UAT API） | 视情况 | 若访问慢/不通，走 VPN |
+| （可选）让机器人调海外大模型 API 兜底 | 要 | 走 VPN |
+
+### 推荐做法：装机时开「全局/TUN 模式」最省事
+你的 VPN 客户端（Clash / V2rayN 等）开**全局模式**（或 TUN 模式），
+然后再执行 `ollama pull` 和 `docker compose up -d`，所有下载自动走 VPN。装完即可关掉，日常聊天不需要它。
+
+### 给单个工具单独配代理（不想全局时）
+假设你的本地代理是 `http://127.0.0.1:7890`（**端口换成你客户端实际的**）：
+
+- **Ollama 拉模型**：先设环境变量再拉（Ollama 认 `HTTPS_PROXY`）。设完要从托盘**退出并重启 Ollama**：
+  ```powershell
+  setx HTTPS_PROXY "http://127.0.0.1:7890"
+  setx HTTP_PROXY  "http://127.0.0.1:7890"
+  ```
+- **Docker 拉镜像**：Docker Desktop → Settings → Resources → **Proxies** → 填 `http://127.0.0.1:7890`。
+  若填了不生效，在代理客户端打开「允许局域网连接(Allow LAN)」，并把地址换成主机局域网 IP。
+- **tools 脚本（阶段三）**：脚本用的 `urllib` 自动读 `HTTPS_PROXY`，所以同一个环境变量就够；
+  只想让脚本走代理时，临时设：
+  ```powershell
+  $env:HTTPS_PROXY="http://127.0.0.1:7890"; python tools\query_records.py --app DEMO_PAY
+  ```
+- **微信桥接**：连的是**本地** Ollama，**不要**给它配外网代理，否则可能影响微信登录。
+
+> 安全提示：本地模型 + 局域网使用时，机器人不会把你的聊天内容发到外网。
+> 只有当你（阶段三可选）接海外大模型 API 兜底时，内容才会出境——按需选择。
 
 ---
 
