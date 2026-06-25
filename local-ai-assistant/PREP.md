@@ -4,16 +4,17 @@
 越早做越好；到货当天能省一大截。勾掉 `[x]` 跟踪进度。
 
 ## ⏳ 现在就做（因为要等生效，最该提前）
-- [ ] **域名 NS 切到 Cloudflare**（你的域名在 GoDaddy）：Cloudflare 注册 → Add a site → 拿 2 个 nameserver →
-      GoDaddy 域名后台改 NS → 等 Active。新域名通常几分钟~1 小时。详见 `gateway/README.md`。
+- [x] **域名 NS 切到 Cloudflare**（snailnow.com）—— ✅ **已 Active**，解析由 Cloudflare 接管。
       > ⚠️ 换 NS 在域名的**「Nameservers」独立设置**里（GoDaddy：域名 → Nameservers → Change → "I'll use my own
       > nameservers" → 用 Cloudflare 的两个替换 `ns49/ns50.domaincontrol.com`），**不是**在「DNS 记录」表里加/删 NS 记录。
-- [ ] **Google PSE 钥匙**（联网搜索用）：拿 `API Key` + 搜索引擎 `cx`。步骤见 [`KEYS.md`](KEYS.md)。
-- [ ] **企业微信**（微信机器人用）：work.weixin.qq.com 建免费企业 → 自建应用 → 记下 `CorpID / AgentId / Secret`。
-      详见 `wechat/README-wechat.md`。
-- [ ] **Clerk 账号**（以后网关鉴权用）：注册 → 建应用 → 记下 issuer（形如 `https://xxx.clerk.accounts.dev`）。
-- [ ] （可选）**serper.dev** 注册拿 key（Google 搜索兜底）。
-- [ ] （走企业微信/frp 才需要）**买一台香港/海外小 VPS**（¥10–30/月），装好 `frps` + `Caddy`（自动 HTTPS）。
+- [x] **Google PSE 钥匙** —— ✅ 已拿到 `API Key` + 搜索引擎 `cx`，存密码管理器（**key 勿入库**）。
+- [x] **企业微信凭据** —— ✅ 已拿到 `CorpID / AgentId / Secret`，存好。
+      （「接收消息」回调到货后用 Cloudflare 配，见下方 VPS 那条）
+- [x] **Clerk 账号** —— ✅ 已拿到 `issuer / Publishable key / Secret key`，存好。
+- [x] （可选）**serper.dev** —— ✅ 已拿 key（Google 搜索兜底）。
+- [x] ~~买 VPS 跑 frps+Caddy~~ —— **不需要了**。原计划用 frp+VPS 中转微信回调，但你的 DigitalOcean droplet
+      **是你的 Xray VPN 机**（443 已被 Xray 占用，不适合再跑 Caddy）。**微信回调改用 Cloudflare Tunnel**：
+      到货后在家里主机上 `cloudflared` 加一条 `wx.snailnow.com → http://127.0.0.1:9898` 即可——零额外机器、不碰 VPN。
 
 ## 到货即省时（先备好，插上电就能用）
 - [ ] **Windows Xray 客户端**：准备 **v2rayN / Nekoray** 的节点/订阅（手机 v2Box 帮不到 Windows 主机）。
@@ -30,5 +31,6 @@
 
 ---
 
-> 做完上面 ⏳ 那几项，到货当天基本就是"敲命令 + 填已经拿到的钥匙"，半天内能把本地 AI + 局域网网页 + 公网网关全跑通。
-> 不确定哪步随时问我。
+> ✅ **状态（2026-06-25）**：上面 ⏳ 那批「现在就做」**已全部完成**（域名 Active、Google/企业微信/Clerk/Serper 钥匙到手）。
+> 微信改走 Cloudflare Tunnel，**不再需要 VPS**。剩下的都是到货后的事：装机 → 建模型 → 起网页 → 起网关 + Cloudflare 隧道。
+> 到货当天基本就是"敲命令 + 填已拿到的钥匙"，半天内能把本地 AI + 局域网网页 + 公网网关跑通。不确定哪步随时问我。
