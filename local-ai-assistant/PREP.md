@@ -6,6 +6,8 @@
 ## ⏳ 现在就做（因为要等生效，最该提前）
 - [ ] **域名 NS 切到 Cloudflare**（你的域名在 GoDaddy）：Cloudflare 注册 → Add a site → 拿 2 个 nameserver →
       GoDaddy 域名后台改 NS → 等 Active。新域名通常几分钟~1 小时。详见 `gateway/README.md`。
+      > ⚠️ 换 NS 在域名的**「Nameservers」独立设置**里（GoDaddy：域名 → Nameservers → Change → "I'll use my own
+      > nameservers" → 用 Cloudflare 的两个替换 `ns49/ns50.domaincontrol.com`），**不是**在「DNS 记录」表里加/删 NS 记录。
 - [ ] **Google PSE 钥匙**（联网搜索用）：拿 `API Key` + 搜索引擎 `cx`。步骤见 [`KEYS.md`](KEYS.md)。
 - [ ] **企业微信**（微信机器人用）：work.weixin.qq.com 建免费企业 → 自建应用 → 记下 `CorpID / AgentId / Secret`。
       详见 `wechat/README-wechat.md`。
