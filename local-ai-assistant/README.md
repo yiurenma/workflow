@@ -67,20 +67,26 @@ cd workflow\local-ai-assistant
 # 或只拷 local-ai-assistant\ + docs\98-product-docs\ 两个目录，保持相对位置（脚本靠相对路径找文档）
 ```
 
-### 三步起飞
+### 三步起飞（双模型：答疑 + 写码）
 ```powershell
-# 1) 拉模型（首选 14B；显存吃紧可换 qwen2.5:7b-instruct）
+# 1) 拉两个基座（答疑用通用版，写码用 Coder 版；显存吃紧可各换 7B）
 ollama pull qwen2.5:14b-instruct
+ollama pull qwen2.5-coder:14b-instruct
 
-# 2) 生成知识库 + 最终 Modelfile，并创建专属模型
+# 2) 生成知识库 + 两份 Modelfile，并创建两个专属模型
 cd local-ai-assistant
 ./build-knowledge.ps1                      # macOS/Linux 用 ./build-knowledge.sh
-ollama create workflow-helper -f knowledge/Modelfile.generated
+ollama create workflow-helper      -f knowledge/Modelfile.chat.generated
+ollama create workflow-helper-code -f knowledge/Modelfile.code.generated
 
 # 3) 先命令行验证一下
 ollama run workflow-helper "调用 workflow API 必须带哪个请求头？少了会怎样？"
 #   ✅ 期望答：必须带 X-Request-Correlation-Id，缺失返回 400 / 440000
 ```
+
+> **自动选模型（推荐）：** 装上 [`openwebui-functions/model_router.py`](openwebui-functions/README.md)，
+> 模型下拉里只留一个 **「小流（自动）」**——写代码/生成工作流自动走写码模型，其余走答疑模型，**你不用手动切**。
+> **双语：** 中文问中文答、English ask → English answer（节点名/错误码等专有名词保持原文）。
 
 ### 起网页（局域网）
 ```powershell
@@ -88,7 +94,7 @@ docker compose up -d
 ```
 - 主机浏览器开 `http://localhost:3000`，首位注册者即管理员。
 - **旧 Mac / 手机**在同一局域网开 `http://<主机IP>:3000`（用 `ipconfig` 查主机 IP）。
-- 在 Open WebUI 右上角模型选 `workflow-helper` 即可开聊。
+- 在 Open WebUI 右上角模型选 **「小流（自动）」**（装了路由器后）或 `workflow-helper` 即可开聊。
 - 旧 MacBook 2015 就这样变成「躺床上白嫖 5060Ti 算力」的遥控器。
 
 > 防火墙：Windows 首次会弹窗，允许专用网络访问 3000 端口即可让局域网设备连上。
