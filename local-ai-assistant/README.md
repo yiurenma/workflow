@@ -213,6 +213,12 @@ Open WebUI 一次只用**一个**配置好的搜索引擎，所以把 **Google P
 见 [`wechat/README-wechat.md`](wechat/README-wechat.md)。要点：**用企业微信自建应用（官方 API，零封号风险）**，
 个人微信即可收发；接收消息的回调需**内网穿透**（见 `wechat/frpc.example.ini`）。
 
+## 让 workflow UI 的用户也能用（公网受控接入）
+见 [`gateway/README.md`](gateway/README.md)。给本地 Ollama 套一层 **鉴权 + 公网 HTTPS 接口**：
+- **只暴露网关，不暴露 Ollama/Open WebUI**；workflow UI 聊天框带令牌来调。
+- 鉴权两段式：先用**共享 API Key** 跑通 → 以后换成校验 **Clerk JWT**，对接你的权限体系。
+- 用 **Cloudflare Tunnel** 暴露（无需公网 IP、自带 HTTPS）。
+
 ## 阶段三：让它能动手（查记录 / 触发 / 生成工作流）
 见 [`tools/README.md`](tools/README.md)。这是你的「最终目的」，建议阶段一二稳定后再开。
 触发类写操作默认有**白名单 + 二次确认**护栏。

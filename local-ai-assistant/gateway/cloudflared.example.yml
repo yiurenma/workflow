@@ -1,0 +1,25 @@
+# Cloudflare Tunnel 配置示例 —— 把本机网关(127.0.0.1:8800)暴露成公网 HTTPS。
+# 好处：无需公网 IP（穿透 CGNAT）、自带 HTTPS、免费。只暴露网关，不碰 Ollama/Open WebUI。
+#
+# 准备：
+#   1. 有一个域名，并托管到 Cloudflare（免费套餐即可）。
+#   2. 装 cloudflared：https://developers.cloudflare.com/cloudflared/
+#   3. 登录并建隧道：
+#        cloudflared tunnel login
+#        cloudflared tunnel create workflow-ai
+#        cloudflared tunnel route dns workflow-ai ai.你的域名
+#   4. 把下面的 <TUNNEL_ID> 和域名换成你的，保存为 ~/.cloudflared/config.yml
+#   5. 运行：cloudflared tunnel run workflow-ai
+#      （Windows 可装成服务：cloudflared service install）
+
+tunnel: <TUNNEL_ID>
+credentials-file: C:\Users\你\.cloudflared\<TUNNEL_ID>.json
+
+ingress:
+  - hostname: ai.你的域名
+    service: http://127.0.0.1:8800
+  # 兜底：其它路径一律 404
+  - service: http_status:404
+
+# 可选但强烈建议：在 Cloudflare Zero Trust → Access 里给 ai.你的域名 加一道登录策略
+# （邮箱 OTP / Google 登录），即使鉴权代码出问题也有第二道闸。
