@@ -41,8 +41,16 @@ curl -X POST https://ai.你的域名/v1/chat/completions \
 见 [`cloudflared.example.yml`](cloudflared.example.yml)。装 `cloudflared` → 建隧道 → 路由
 `ai.你的域名` → `http://127.0.0.1:8800` → `cloudflared tunnel run`。Windows 可装成开机服务。
 
-> 备选：用我们已有的 `../wechat/frpc.example.ini`（frp + VPS）也能暴露；或 cpolar/花生壳。
-> 但 Cloudflare Tunnel 对"网页 + 自带 HTTPS + 免公网 IP"最省心。
+### 用你自己的域名（已有域名就用它）
+Cloudflare Tunnel 要求域名 DNS 托管在 Cloudflare（免费）。不管在哪注册的（阿里云/腾讯云/GoDaddy…）：
+1. 注册免费 Cloudflare → **Add a site** → 输入你的域名。
+2. 把注册商后台的 **nameserver(NS)** 改成 Cloudflare 给的两个（生效几分钟~几小时）。
+3. 之后 `cloudflared tunnel route dns <隧道名> ai.你的域名` 会**自动建解析**，直接可用。
+
+> 备选：用我们已有的 `../wechat/frpc.example.ini`（frp + VPS）也能暴露——这种**不必把 NS 搬到 Cloudflare**，
+> 用你域名的 A 记录指向 VPS 即可，且**香港/海外 VPS 在国内通常更稳**。Cloudflare Tunnel 胜在免公网 IP + 自带 HTTPS、最省心。
+>
+> ICP 备案：仅当托管在**中国大陆境内**服务器/国内 CDN 才强制；Cloudflare Tunnel / Vercel 等境外边缘技术上无需备案。
 
 ## 第三步：换成 Clerk 鉴权（接你的权限体系）
 当 workflow UI 接好 Clerk 后，前端用 `getToken()` 拿登录用户的 JWT，放进 `Authorization: Bearer`。
