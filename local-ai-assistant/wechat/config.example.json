@@ -1,0 +1,22 @@
+{
+  "_说明": "chatgpt-on-wechat 配置示例。复制为 config.json 后改成你的值。详见 README-wechat.md。",
+
+  "model": "workflow-helper",
+  "open_ai_api_key": "ollama",
+  "open_ai_api_base": "http://127.0.0.1:11434/v1",
+
+  "temperature": 0.3,
+  "character_desc": "你是 Workflow Studio 的专属助手「小流」，性格已在本地模型里设定，简洁专业地帮人用好这个平台。",
+
+  "_白名单防误触防封": "只回复名单里的人；下面填你自己的微信昵称",
+  "single_chat_prefix": [""],
+  "single_chat_reply_prefix": "",
+  "nick_name_white_list": ["你的微信昵称"],
+  "group_chat_prefix": ["@小流"],
+  "group_name_white_list": [],
+
+  "speech_recognition": false,
+  "voice_reply_voice": false,
+  "conversation_max_tokens": 2000,
+  "expires_in_seconds": 3600
+}

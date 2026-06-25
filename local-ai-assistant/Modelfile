@@ -1,0 +1,26 @@
+# workflow-helper —— 本地 Workflow 平台 AI 助手（Modelfile 模板）
+#
+# ⚠️ 这是「模板」，不要直接 ollama create 它。
+# 先跑 build-knowledge.ps1 / .sh，会把本模板里的两个占位符替换成
+# system-prompt.md（性格+护栏）和拼好的平台知识库，生成最终文件：
+#     knowledge/Modelfile.generated
+# 然后：  ollama create workflow-helper -f knowledge/Modelfile.generated
+#
+# 换基座模型：只改下面这一行 FROM（如 qwen2.5:7b-instruct、llama3.1:8b）。
+# 显存吃紧/想更快：把 num_ctx 调小（如 4096）或换 7B/8B 模型。
+
+FROM qwen2.5:14b-instruct
+
+# 偏事实问答：低温度、稳定输出
+PARAMETER temperature 0.3
+PARAMETER top_p 0.9
+# 上下文窗口：知识库 + 多轮对话。16GB 显存 14B-Q4 跑 8192 稳；想更长可调 16384
+PARAMETER num_ctx 8192
+
+SYSTEM """
+{{SYSTEM_PROMPT}}
+
+========== 以下是 Workflow Studio 平台知识库（回答须严格依据它，逐字引用关键事实）==========
+
+{{KNOWLEDGE}}
+"""

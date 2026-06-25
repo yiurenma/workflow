@@ -1,0 +1,19 @@
+# 局域网网页聊天界面（Open WebUI）。一条命令启动：  docker compose up -d
+# 启动后浏览器开 http://<本机IP>:3000 ，旧 Mac / 手机在同一局域网也能访问。
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"            # 左边 3000 是局域网访问端口，可改
+    environment:
+      # 让 Open WebUI 连本机的 Ollama。Docker Desktop(Win/Mac) 用 host.docker.internal
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - WEBUI_AUTH=true        # 开启登录，避免局域网里谁都能用；首位注册者为管理员
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # Linux 上让容器能回连宿主机
+    volumes:
+      - open-webui:/app/backend/data           # 聊天历史/账号持久化
+volumes:
+  open-webui:

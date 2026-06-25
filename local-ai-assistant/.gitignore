@@ -1,0 +1,13 @@
+# 构建产物（由 build-knowledge 生成，不入库）
+knowledge/knowledge.md
+knowledge/Modelfile.generated
+
+# 微信真实配置（含账号/密钥，不入库）—— 只提交 config.example.json
+wechat/config.json
+
+# 工具脚本的本地环境变量/密钥
+tools/.env
+
+# Python 缓存
+__pycache__/
+*.pyc
