@@ -19,7 +19,7 @@
 ## 到货即省时（先备好，插上电就能用）
 - [ ] **Windows Xray 客户端**：准备 **v2rayN / Nekoray** 的节点/订阅（手机 v2Box 帮不到 Windows 主机）。
       默认本地代理端口 HTTP `10809` / SOCKS `10808`。
-- [ ] **子域名规划**：`ai.你的域名`（AI 网关）、`app.你的域名`（给 workflow UI 绑 Vercel）、可选 `chat.你的域名`。
+- [ ] **子域名规划**：`ai.你的域名`（AI 网关）、`workflow.你的域名`（给 workflow UI 绑 Vercel）、可选 `chat.你的域名`。
 - [ ] **预生成 `GATEWAY_API_KEY`**：一串很长的随机字符串，先存密码管理器里。
 - [ ] **通读** [`QUICKSTART.md`](QUICKSTART.md) + `gateway/README.md` + `wechat/README-wechat.md`，心里有数。
 - [ ] **想好性格**（默认是「专业英式管家·小流」）：要改就先想好一句话风格，到货改 `system-prompt.md` 即可。
