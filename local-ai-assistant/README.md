@@ -147,9 +147,19 @@ open-webui serve --host 0.0.0.0 --port 3000
 
 ## 让它能联网搜索（Google）—— 不知道就上网查
 
-**策略：本地优先，联网兜底。** 平时把 Web Search 开关**关着**，让它先用本地知识回答；
-只有**本地解决不了**（或需要实时/最新信息）时，才点亮开关让它上网。想让它能上网搜，
-用 Open WebUI 内置的 **Web Search**，接 **Google 官方可编程搜索（Programmable Search Engine, PSE）**。
+**策略：本地优先，联网兜底——而且全自动。** 本地答得了就本地答，答不了它**自己**联网搜，
+搜索内部 **Google 优先、失败自动换备选**。你**不用点任何开关、不用选引擎**。
+
+> 🚀 **推荐：全自动联网搜索（function-calling 工具）。**
+> 见 [`openwebui-tools/README.md`](openwebui-tools/README.md)：导入 `openwebui-tools/web_search.py`、
+> 填 Google 钥匙、把工具挂到 `workflow-helper` 模型并开启 **Function Calling = Native**。
+> 之后模型会在「本地答不出」时**自动**调用它（Google→Serper→DuckDuckGo 自动兜底），全程零手动。
+> 这就是你要的「一切智能化」。下面那套「手动开关」是不想装工具时的简易替代，二选一即可。
+
+---
+
+### 简易替代：内置 Web Search 手动开关（不想装工具时）
+用 Open WebUI 内置的 **Web Search**，接 **Google 可编程搜索（PSE）**。需要时手动点亮开关。
 
 ### 一次性准备（拿两把钥匙）
 1. **Google API Key**：到 Google Cloud Console 启用 **Custom Search API**，创建一个 API 密钥。
