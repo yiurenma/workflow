@@ -37,7 +37,8 @@ workflow UI 用户 ─ 公网网关(:8800) ─┼─→ Ollama (:11434, 仅 loca
 | 联网搜索 | **全自动**，模型自己决定 | 本地优先、答不了才联网；引擎 Google→Serper→DuckDuckGo 自动兜底；不用手动开关 |
 | 语言 | **中英双语**，按用户语言回复 | 专有名词（节点名/错误码/请求头）保持原文 |
 | 性格 | **默认**（专业英式管家） | 可随时改 `system-prompt.md` 重新构建 |
-| 微信 | **企业微信(WeCom)官方机器人** | 弃个人号协议（封号风险）；WeCom 官方 API = **零封号**；代价是回调需内网穿透 |
+| 微信 | **企业微信(WeCom)官方机器人** | 弃个人号协议（封号风险）；WeCom 官方 API = **零封号** |
+| 微信回调通道 | **Cloudflare Tunnel**（不用 VPS） | 回调需公网可达；本想用 frp+VPS，但用户的 DigitalOcean VPS 是 Xray VPN 机(443 被占)→ 改用家里主机的 cloudflared 加 `wx.域名` 一条，零额外机器 |
 | 公网访问 | **网关 + Cloudflare Tunnel + Clerk** | 绝不裸奔 Ollama；网关鉴权（先 API Key→后 Clerk JWT）；Tunnel 解决无公网 IP(CGNAT) |
 | 域名 | 新域名 GoDaddy → **NS 切 Cloudflare** | 新域名无旧记录，最省事；Cloudflare Tunnel 要求 zone 托管在 CF |
 | VPN | 主机用 **v2rayN/Nekoray**（同 Xray 节点） | 手机 v2Box 帮不到 Windows 主机；端口 HTTP 10809；仅下载/联网搜索时需要 |
@@ -46,7 +47,7 @@ workflow UI 用户 ─ 公网网关(:8800) ─┼─→ Ollama (:11434, 仅 loca
 ## 6. 时间预期
 - **本地 AI + 局域网网页**：到货当天半天（主要等模型下载，~18GB）。提速：先用 7B、Open WebUI 用 `pip` 跳过 Docker 镜像、全程挂 VPN。
 - **公网网关 + 域名**：当天能通（纯动手 ~40 分钟 + 等 NS 生效）。
-- **分天做的**：企业微信（要 VPS + 内网穿透）、Clerk 接入、workflow UI 嵌聊天框——各自独立，1–3 小时。
+- **分天做的**：企业微信（回调走 Cloudflare Tunnel，不用 VPS）、Clerk 接入、workflow UI 嵌聊天框——各自独立，1–3 小时。
 
 ## 7. 套件文件地图（`local-ai-assistant/`）
 | 路径 | 作用 |

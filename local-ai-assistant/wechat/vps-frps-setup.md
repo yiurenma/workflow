@@ -1,5 +1,10 @@
 # 企业微信回调 · VPS(frps + Caddy)搭建
 
+> 🟡 **多数情况不需要本方案。优先用 [Cloudflare Tunnel](#) 代替**（家里主机 cloudflared 加一条
+> `wx.你的域名 → 127.0.0.1:9898`，零额外机器、自带 HTTPS）。
+> ⚠️ 尤其**别用你的 VPN 服务器**来跑这个：若该 VPS 已装 Xray/V2Ray 等占用 443，Caddy 会和它抢端口、
+> 还可能影响 VPN。本文件保留作"有独立空闲公网 VPS"时的参考。
+
 企业微信「接收消息」回调要求**公网 HTTPS + 标准端口**,而家里主机在 CGNAT 后面。
 用一台有公网 IP 的 VPS（你已有 DigitalOcean droplet）跑 **frps + Caddy**,把家里 cow 的回调口
 （`9898` `/wxcomapp`）暴露成 `https://wx.你的域名/wxcomapp`。
