@@ -135,6 +135,9 @@ open-webui serve --host 0.0.0.0 --port 3000
 ### 给单个工具单独配代理（不想全局时）
 假设你的本地代理是 `http://127.0.0.1:7890`（**端口换成你客户端实际的**）：
 
+> 用 **Xray** 的话：手机端 v2Box 帮不到 Windows 主机；在主机上用 **v2rayN / Nekoray** 导入同一节点，
+> 默认本地端口是 **HTTP `10809`** / SOCKS `10808`（把下面的 `7890` 换成 `10809`），或直接开它的系统代理/TUN 全局模式。
+
 - **Ollama 拉模型**：先设环境变量再拉（Ollama 认 `HTTPS_PROXY`）。设完要从托盘**退出并重启 Ollama**：
   ```powershell
   setx HTTPS_PROXY "http://127.0.0.1:7890"
