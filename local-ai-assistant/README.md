@@ -51,7 +51,8 @@
 | 3 | **Git** | 阶段一（必需） | https://git-scm.com —— 拉本仓库；自带 Git-Bash 还能跑 `.sh` |
 | 4 | **网页界面**（二选一） | 阶段一（必需） | A. **Docker Desktop**（需开 WSL2）跑 `docker compose up -d`；<br>B. 嫌 Docker 重，可改用 **Python + `pip install open-webui`**（见下方「不想装 Docker」） |
 | 5 | **Python 3.10+** | 阶段二、三 | https://python.org —— 微信桥接、tools 脚本、（可选）Open WebUI 都要它。装时勾选 *Add to PATH* |
-| 6 | **chatgpt-on-wechat** | 阶段二 | `git clone` + `pip install`，见 `wechat/README-wechat.md` |
+| 6 | **chatgpt-on-wechat**（企业微信渠道） | 阶段二 | `git clone` + `pip install`，见 `wechat/README-wechat.md` |
+| 7 | **内网穿透**（frp + 小 VPS，或 cpolar/花生壳） | 阶段二 | 企业微信回调需公网可达；见 `wechat/frpc.example.ini` |
 
 > Windows 上**不需要**额外装 bash —— 直接用 PowerShell 跑 `build-knowledge.ps1`。
 > `.sh` 是给你在旧 Mac 上改东西时用的。
@@ -167,7 +168,7 @@ open-webui serve --host 0.0.0.0 --port 3000
 ### 简易替代：内置 Web Search 手动开关（不想装工具时）
 用 Open WebUI 内置的 **Web Search**，接 **Google 可编程搜索（PSE）**。需要时手动点亮开关。
 
-### 一次性准备（拿两把钥匙）
+### 一次性准备（拿两把钥匙）—— 详细图文步骤见 [`KEYS.md`](KEYS.md)
 1. **Google API Key**：到 Google Cloud Console 启用 **Custom Search API**，创建一个 API 密钥。
 2. **搜索引擎 ID (cx)**：到 https://programmablesearchengine.google.com 新建搜索引擎，
    选「搜索整个网络」，复制它的 **Search engine ID**。
@@ -208,8 +209,9 @@ Open WebUI 一次只用**一个**配置好的搜索引擎，所以把 **Google P
 
 ---
 
-## 阶段二：接入微信
-见 [`wechat/README-wechat.md`](wechat/README-wechat.md)。要点：**用小号扫码 + 主人白名单**，防封防误触。
+## 阶段二：接入微信 —— 企业微信(WeCom)官方机器人
+见 [`wechat/README-wechat.md`](wechat/README-wechat.md)。要点：**用企业微信自建应用（官方 API，零封号风险）**，
+个人微信即可收发；接收消息的回调需**内网穿透**（见 `wechat/frpc.example.ini`）。
 
 ## 阶段三：让它能动手（查记录 / 触发 / 生成工作流）
 见 [`tools/README.md`](tools/README.md)。这是你的「最终目的」，建议阶段一二稳定后再开。
