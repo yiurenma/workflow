@@ -3,7 +3,8 @@
 一套**硬件到货后照着敲就能跑**的本地 AI 助手套件，专门服务用 **Workflow Studio** 平台的人。
 它跑在你那台 RTX 5060 Ti 16GB 的主机上，通过**局域网网页**和**微信**对外服务。
 
-> 🚀 **赶时间？直接看 [`QUICKSTART.md`](QUICKSTART.md) — 装机当天一页纸命令清单**（建模型→网页→公网网关，一路串好）。
+> 🎯 **George 专属：[`QUICKSTART-snailnow.md`](QUICKSTART-snailnow.md)** — 按你的实际情况定制（snailnow.com + 双模型 + Cloudflare + 已备钥匙）。
+> 🚀 **通用版：[`QUICKSTART.md`](QUICKSTART.md) — 装机当天一页纸命令清单**（建模型→网页→公网网关，一路串好）。
 > 📦 **还在等快递？先看 [`PREP.md`](PREP.md) — 到货前能提前做的事**（切域名 NS、申请钥匙/账号，省到货当天的时间）。
 > 🧭 **想看"为什么这么设计"？看 [`DECISIONS.md`](DECISIONS.md) — 决策记录**（整条讨论的来龙去脉 + 每个决定的理由）。
 
