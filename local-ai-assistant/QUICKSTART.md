@@ -70,5 +70,5 @@ cloudflared tunnel run workflow-ai      # 可 cloudflared service install 设成
 - **企业微信机器人**（零封号）：`wechat/README-wechat.md` + 内网穿透 `wechat/frpc.example.ini`。
 - **Clerk 鉴权**：网关 `.env` 改 `AUTH_MODE=clerk` + `CLERK_ISSUER`（见 `gateway/README.md`）。
 - **workflow UI 里嵌聊天框**：前端带 Clerk token 调 `https://ai.你的域名/v1/chat/completions`。
-- **给 workflow UI 绑自定义域名**（Vercel 加 `app.你的域名`，国内更稳）。
+- **给 workflow UI 绑自定义域名**（Vercel 加 `workflow.你的域名`，国内更稳）。
 - **内存补到 32GB 双通道**。

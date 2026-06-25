@@ -3,7 +3,7 @@
 这是按你的实际情况定制的版本：域名 **snailnow.com**、**双模型 + 自动路由**、网页用 **pip**（跳过 Docker）、
 公网用 **Cloudflare Tunnel**（网关 + 微信回调都走它，**不用 VPS**）。钥匙你已备好，到时从密码管理器里取。
 
-> 子域名规划：`ai.snailnow.com`（AI 网关）· `wx.snailnow.com`（微信回调）· `app.snailnow.com`（以后给 workflow UI 绑 Vercel）。
+> 子域名规划：`ai.snailnow.com`（AI 网关）· `wx.snailnow.com`（微信回调）· `workflow.snailnow.com`（以后给 workflow UI 绑 Vercel）。
 
 ---
 
@@ -55,7 +55,7 @@ cd gateway
 pip install -r requirements.txt
 copy .env.example .env
 #   编辑 .env：AUTH_MODE=apikey；GATEWAY_API_KEY=<你预生成的长随机串>；
-#             ALLOWED_ORIGINS=https://app.snailnow.com,https://workflow-ui-gamma.vercel.app
+#             ALLOWED_ORIGINS=https://workflow.snailnow.com,https://workflow-ui-gamma.vercel.app
 uvicorn app:app --host 127.0.0.1 --port 8800
 #   自测：curl http://127.0.0.1:8800/healthz
 ```
@@ -100,7 +100,7 @@ python app.py        # 监听 9898（已被上面隧道转发到 wx.snailnow.com
 
 ## 6. 以后
 - **Clerk 鉴权**：workflow-ui 接好 Clerk 后，网关 `.env` 改 `AUTH_MODE=clerk` + `CLERK_ISSUER=<你的 issuer>` +
-  `CLERK_AUTHORIZED_PARTIES=https://app.snailnow.com`。
+  `CLERK_AUTHORIZED_PARTIES=https://workflow.snailnow.com`。
 - **workflow UI 嵌聊天框**：前端带 Clerk token 调 `https://ai.snailnow.com/v1/chat/completions`。
-- **给 workflow UI 绑域名**：Vercel 加 `app.snailnow.com`（国内更稳）。
+- **给 workflow UI 绑域名**：Vercel 加 `workflow.snailnow.com`（国内更稳）。
 - **内存补到 32G 双通道**。
