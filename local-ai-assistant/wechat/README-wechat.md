@@ -30,7 +30,7 @@
 把本机端口（cow 的 `wechatcom_app` 默认 **9898**，路径 `/wxcomapp`）暴露成**公网 HTTPS**。
 
 - **frp（推荐，稳）**：自备一台有公网 IP 的小 VPS（¥10–30/月）跑 `frps`，家里跑 `frpc`。
-  示例见 [`frpc.example.ini`](frpc.example.ini)。需在 VPS 上配 HTTPS（如 Caddy/Nginx 自动证书）。
+  示例见 [`frpc.example.ini`](frpc.example.ini)；**DigitalOcean 等 VPS 的完整搭建步骤见 [`vps-frps-setup.md`](vps-frps-setup.md)**。需在 VPS 上配 HTTPS（如 Caddy/Nginx 自动证书）。
 - **cpolar / 花生壳（零成本起步）**：SaaS 穿透，注册即用、自带 HTTPS 域名。
   缺点：免费版域名会变，**域名一变就得回企业微信后台改回调 URL**。
 
