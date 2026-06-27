@@ -1,4 +1,4 @@
-# 把 docs/98-product-docs 的用户文档拼成一份知识库，并注入 Modelfile 模板，
+﻿# 把 docs/98-product-docs 的用户文档拼成一份知识库，并注入 Modelfile 模板，
 # 生成两份可直接 ollama create 的文件：
 #     knowledge/Modelfile.chat.generated  （答疑，基座 qwen2.5:14b-instruct）
 #     knowledge/Modelfile.code.generated  （写码，基座 qwen2.5-coder:14b-instruct）
