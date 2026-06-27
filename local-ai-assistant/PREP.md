@@ -39,10 +39,10 @@
 - [x] 蓝牙 / AirPods Max 修好（根因：WiFi/蓝牙**天线没装** → 拧上后端正常）
 - [x] 基础软件：**Python 3.12.10 / Git 2.54 / Ollama 0.30.11 / cloudflared**（注意：Python 用 3.12，3.14 太新装不上 open-webui）
 - [x] `git clone` 套件代码到 `…\workspace\workflow`
-- [~] 拉模型：`qwen2.5:14b` 下载中（曾报 `\x00`＝缓存损坏，清 `.ollama\models` 重拉已好）；`qwen2.5-coder:14b` 待拉
-- [ ] `build-knowledge.ps1` + `ollama create` 两个模型
-- [ ] 起 Open WebUI（pip，局域网 :3000）
-- [ ] 装三件套（路由器 / 联网搜索 / 工作流校验）
+- [x] 拉两个模型（坑：`\x00`＝缓存损坏，清 `.ollama\models` 重拉；GPU 已确认在跑 `llama-server.exe`）
+- [x] `build-knowledge` + `ollama create` 两个模型成功（坑：PS5.1 中文编码 → 用 Git Bash 跑 `.sh`，仓库 ps1 已加 BOM）
+- [x] **起 Open WebUI（pip，:3000）跑起来、网页能对话** ✅（坑：HF 嵌入模型龟速 → 设 `HF_ENDPOINT=https://hf-mirror.com` 提速）
+- [ ] 装三件套（路由器 / 联网搜索 / 工作流校验）+ 关开放注册
 - [ ] 网关 + Cloudflare 隧道（`ai.snailnow.com`）
 - [ ] 企业微信（`wx.snailnow.com`，同隧道）
 
