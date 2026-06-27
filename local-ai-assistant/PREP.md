@@ -42,9 +42,13 @@
 - [x] 拉两个模型（坑：`\x00`＝缓存损坏，清 `.ollama\models` 重拉；GPU 已确认在跑 `llama-server.exe`）
 - [x] `build-knowledge` + `ollama create` 两个模型成功（坑：PS5.1 中文编码 → 用 Git Bash 跑 `.sh`，仓库 ps1 已加 BOM）
 - [x] **起 Open WebUI（pip，:3000）跑起来、网页能对话** ✅（坑：HF 嵌入模型龟速 → 设 `HF_ENDPOINT=https://hf-mirror.com` 提速）
-- [ ] 装三件套（路由器 / 联网搜索 / 工作流校验）+ 关开放注册
-- [ ] 网关 + Cloudflare 隧道（`ai.snailnow.com`）
+- [x] 工具：**联网搜索（Google，已验证自动搜+来源）+ 工作流校验** 装好；关开放注册 ✅
+      （路由器/「小流」预设暂缓——预设系统提示词会覆盖/截断 Modelfile 知识，日常直接用 `workflow-helper` 最准，工具按需用田字格开）
+- [x] **公网网关 + Cloudflare 隧道 `https://ai.snailnow.com`** ✅ —— API Key 鉴权，全链路实测通（公网→鉴权→本地模型）
+      自启：`start-gateway.bat` + `start-tunnel.bat` 放进启动文件夹（登录自启）。
+      坑：`cloudflared service install` 以 SYSTEM 跑读凭据有权限问题 → 改用登录自启脚本（以用户身份跑，稳）；502 = 网关没起。
 - [ ] 企业微信（`wx.snailnow.com`，同隧道）
+- [ ] Clerk 鉴权 + workflow UI 嵌聊天框（调 `ai.snailnow.com`）
 
 > ✅ **到货前**那批「现在就做」已全部完成（域名 Active、Google/企业微信/Clerk/Serper 钥匙到手、`workflow.snailnow.com` 上线）。
 > 微信改走 Cloudflare Tunnel，不再需要 VPS。当前正按 [`QUICKSTART-snailnow.md`](QUICKSTART-snailnow.md) 装机，进度见上。
