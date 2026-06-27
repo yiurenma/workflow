@@ -33,6 +33,18 @@
 
 ---
 
-> ✅ **状态（2026-06-25）**：上面 ⏳ 那批「现在就做」**已全部完成**（域名 Active、Google/企业微信/Clerk/Serper 钥匙到手）。
-> 微信改走 Cloudflare Tunnel，**不再需要 VPS**。剩下的都是到货后的事：装机 → 建模型 → 起网页 → 起网关 + Cloudflare 隧道。
-> 到货当天基本就是"敲命令 + 填已拿到的钥匙"，半天内能把本地 AI + 局域网网页 + 公网网关跑通。不确定哪步随时问我。
+## 到货后 · 装机进度（实时）
+- [x] 新机到货、装机理线、配件齐
+- [x] VPN（v2rayN + Xray 节点）联通（坑：VPS 上误开的 ufw 挡了订阅端口 2096 → `ufw disable` 解决）
+- [x] 蓝牙 / AirPods Max 修好（根因：WiFi/蓝牙**天线没装** → 拧上后端正常）
+- [x] 基础软件：**Python 3.12.10 / Git 2.54 / Ollama 0.30.11 / cloudflared**（注意：Python 用 3.12，3.14 太新装不上 open-webui）
+- [x] `git clone` 套件代码到 `…\workspace\workflow`
+- [~] 拉模型：`qwen2.5:14b` 下载中（曾报 `\x00`＝缓存损坏，清 `.ollama\models` 重拉已好）；`qwen2.5-coder:14b` 待拉
+- [ ] `build-knowledge.ps1` + `ollama create` 两个模型
+- [ ] 起 Open WebUI（pip，局域网 :3000）
+- [ ] 装三件套（路由器 / 联网搜索 / 工作流校验）
+- [ ] 网关 + Cloudflare 隧道（`ai.snailnow.com`）
+- [ ] 企业微信（`wx.snailnow.com`，同隧道）
+
+> ✅ **到货前**那批「现在就做」已全部完成（域名 Active、Google/企业微信/Clerk/Serper 钥匙到手、`workflow.snailnow.com` 上线）。
+> 微信改走 Cloudflare Tunnel，不再需要 VPS。当前正按 [`QUICKSTART-snailnow.md`](QUICKSTART-snailnow.md) 装机，进度见上。
