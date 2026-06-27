@@ -77,8 +77,14 @@ workflow UI 用户 ─ 公网网关(:8800) ─┼─→ Ollama (:11434, 仅 loca
 | `tools/` | 阶段三：查记录 / 触发 / 生成 / 校验（命令行） |
 
 ## 8. 待办 / 下一步
+- **⭐ 重要需求：外部调用（网关）也必须带"技能"**。当前 `gateway/app.py` 是**裸代理**——直转 Ollama，
+  只有 Modelfile 里的知识/性格，**没有**联网搜索、工作流校验这些工具(那些工具目前只在 Open WebUI 里编排)。
+  目标：让走 `ai.snailnow.com` 的外部调用（如 workflow UI 聊天框）**和网页里的小流一样聪明**(本地优先→联网兜底→生成工作流自动校验)。
+  实现方向(二选一)：
+  - **A（推荐，复用现成）**：网关把请求转发到 **Open WebUI 的 OpenAI 兼容端点**(用挂了工具的模型)，由 Open WebUI 跑工具编排。需在 Open WebUI 建 API Key、用带工具的模型、并解决预设知识截断问题(系统提示词放全 + num_ctx 调大)。
+  - **B**：在 `gateway/app.py` 里**自己实现工具调用循环**(模型→调 web_search/validate→回灌→再生成)，工具逻辑复用 `openwebui-tools/*.py` 的核心函数。可控但要写 agent 循环。
 - **到货后配置**：填 Google/企业微信/Clerk 凭据、建模型、起网页、起网关、建 Cloudflare 隧道。
-- **仍需做**：① 企业微信联调（VPS + 穿透 + 回调验证）；② workflow-ui 接 Clerk 后把网关 `AUTH_MODE` 切 `clerk`；
+- **仍需做**：① 企业微信联调（穿透/隧道 + 回调验证）；② workflow-ui 接 Clerk 后把网关 `AUTH_MODE` 切 `clerk`；
   ③ **在 workflow UI 里嵌聊天框**调网关（前端开发，需 workflow-ui 仓库可检出——本会话里它是空指针/独立仓库，权限受限）。
 - **硬件**：第二条 16GB 内存暂缓（DDR5 涨价期），16G 起步够用。
 

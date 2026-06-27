@@ -3,6 +3,11 @@
 给本地 Ollama 套一层「**鉴权 + 公网 HTTPS 接口**」，让 workflow UI 里的聊天框能安全地调到它。
 **只暴露这个网关，不暴露 Ollama / Open WebUI。**
 
+> ⭐ **重要需求(待做)：外部调用也要带"技能"。** 现版本网关是**裸代理**(直转 Ollama)，外部调用只有
+> Modelfile 的知识/性格，**没有**联网搜索、工作流校验这些工具。目标是让走 `ai.snailnow.com` 的调用
+> **和网页里的小流一样聪明**(本地优先→联网兜底→生成工作流自动校验)。实现方向见 `DECISIONS.md` 第 8 节
+> (A: 网关转发到 Open WebUI 的 OpenAI 兼容端点复用工具编排；B: 在网关里自己写工具调用循环，复用 `openwebui-tools/*.py`)。
+
 ```
 [workflow UI 用户(登录 Clerk)] --Bearer <Clerk JWT>--> [Cloudflare Tunnel(公网HTTPS)]
                                                               --> [网关 :8800] --验证--> [Ollama :11434 仅本地]

@@ -47,6 +47,7 @@
 - [x] **公网网关 + Cloudflare 隧道 `https://ai.snailnow.com`** ✅ —— API Key 鉴权，全链路实测通（公网→鉴权→本地模型）
       自启：`start-gateway.bat` + `start-tunnel.bat` 放进启动文件夹（登录自启）。
       坑：`cloudflared service install` 以 SYSTEM 跑读凭据有权限问题 → 改用登录自启脚本（以用户身份跑，稳）；502 = 网关没起。
+- [ ] **⭐ 让网关也带"技能"**：外部调用(`ai.snailnow.com`)目前是裸模型，要让它也能联网搜索/校验工作流(见 `DECISIONS.md` 第 8 节、`gateway/README.md`)。
 - [ ] 企业微信（`wx.snailnow.com`，同隧道）
 - [ ] Clerk 鉴权 + workflow UI 嵌聊天框（调 `ai.snailnow.com`）
 
